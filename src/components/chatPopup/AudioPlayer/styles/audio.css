@@ -1,0 +1,72 @@
+/* ---------- GLOBAL AUDIO RESET ---------- */
+
+audio {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background-color: transparent;
+  color: #fff;
+  outline: none;
+}
+
+/* Hide full background and borders */
+audio::-webkit-media-controls-enclosure {
+  background-color: transparent;
+  border-radius: 12px;
+  border: none;
+}
+
+/* Panel styling (Chrome/Safari/Edge) */
+audio::-webkit-media-controls-panel {
+  background: #cb0c9f;
+  border-radius: 12px;
+  padding: 0 6px;
+  height: 100%;
+}
+
+/* Button icons (invert to match light theme) */
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-pause-button,
+audio::-webkit-media-controls-mute-button,
+audio::-webkit-media-controls-volume-slider,
+audio::-webkit-media-controls-timeline,
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  filter: invert(1);
+  opacity: 0.9;
+}
+
+/* Optional: hover effect */
+audio::-webkit-media-controls-play-button:hover,
+audio::-webkit-media-controls-pause-button:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* Firefox (limited styling support) */
+audio::-moz-media-controls {
+  background: #cb0c9f;
+  border-radius: 12px;
+}
+
+/* Hide download button if unwanted */
+audio::-internal-media-controls-download-button {
+  display: none;
+}
+
+/* Remove track border on some browsers */
+audio::-webkit-media-controls-timeline-container {
+  border: none;
+}
+
+/* Optional: small size variant */
+audio.audio-sm {
+  height: 40px;
+  transform: scale(0.95);
+}
+
+/* Optional: large variant */
+audio.audio-lg {
+  height: 64px;
+  transform: scale(1.1);
+}
