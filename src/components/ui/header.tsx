@@ -1,4 +1,5 @@
 "use client";
+import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
@@ -24,6 +25,7 @@ interface BreadcrumbItem {
 export function Header() {
   const { selectedClient, selectedRecording } = useGeneralContext();
   const { mobileMenu, setMobileMenu } = useSidebar();
+  const { clearSession } = useSession();
   const pathname = usePathname();
   const cookies = useCookies();
   const router = useRouter();
@@ -131,6 +133,7 @@ export function Header() {
                     cookies.remove(
                       process.env.NEXT_PUBLIC_USER_TOKEN as string,
                     );
+                    clearSession();
                     router.push("/login");
                   }}
                 >

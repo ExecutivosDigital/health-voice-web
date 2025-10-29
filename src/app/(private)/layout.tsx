@@ -1,4 +1,5 @@
 "use client";
+import { AuthGuard } from "@/components/auth-guard";
 import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
@@ -20,14 +21,16 @@ export default function RootLayout({
   }, []);
 
   return (
-    <GeneralContextProvider>
-      <div className="relative flex w-full flex-col pb-20">
-        <Header />
-        <Sidebar />
-        <div className="z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 rounded-3xl bg-white p-4">
-          {children}
+    <AuthGuard>
+      <GeneralContextProvider>
+        <div className="relative flex w-full flex-col pb-20">
+          <Header />
+          <Sidebar />
+          <div className="z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 rounded-3xl bg-white p-4">
+            {children}
+          </div>
         </div>
-      </div>
-    </GeneralContextProvider>
+      </GeneralContextProvider>
+    </AuthGuard>
   );
 }

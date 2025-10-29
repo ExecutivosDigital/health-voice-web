@@ -134,14 +134,12 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
     return query.toString();
   };
 
-  console.log("selectedRecording: ", selectedRecording);
   // --- 4. FUNÇÕES DE FETCH (Padrão GeneralContext) ---
 
   const GetRecordings = useCallback(async () => {
     setIsGettingRecordings(true);
     try {
       const queryString = buildQueryString(recordingsFilters);
-      // Endpoint: /recording
       const response = await GetAPI(`/recording?${queryString}`, true);
       if (response.status === 200) {
         setRecordings(response.body.recordings || []);

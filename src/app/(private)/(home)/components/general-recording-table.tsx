@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { GeneralRecordingsTableHeader } from "./general-recording-table-header";
 import { GeneralRecordingTableItem } from "./general-recording-table-row";
 
-type SortableColumn = "ID" | "TITLE" | "DATE" | "DURATION" | "STATUS" | null;
+type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | "TYPE" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
@@ -32,11 +32,10 @@ export function GeneralRecordingsTable() {
   const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
 
   const GeneralRecordingsColumns = [
-    { key: "ID", label: "ID", sortable: true },
-    { key: "TITLE", label: "Título da Gravação", sortable: true },
-    { key: "DATE", label: "Data da Gravação", sortable: true },
+    { key: "NAME", label: "Título da Gravação", sortable: true },
+    { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
     { key: "DURATION", label: "Tempo de Gravação", sortable: true },
-    { key: "STATUS", label: "Status", sortable: true },
+    { key: "TYPE", label: "Tipo de Gravação", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
@@ -47,8 +46,7 @@ export function GeneralRecordingsTable() {
     const sortField = direction ? column : undefined;
     const sortOrder = direction || undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setRecordingsFilters((prev: any) => ({
+    setRecordingsFilters((prev) => ({
       ...prev,
       sortBy: (sortField as SortableColumn | undefined) || undefined,
       sortDirection: sortOrder || undefined,
@@ -87,6 +85,7 @@ export function GeneralRecordingsTable() {
   useEffect(() => {
     setRecordingsFilters((prev) => ({
       ...prev,
+      clientId: undefined,
       type: undefined,
       page: 1,
     }));
@@ -112,7 +111,12 @@ export function GeneralRecordingsTable() {
                   column.sortable && handleSort(column.key as SortableColumn)
                 }
               >
-                <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "flex items-center gap-2",
+                    column.key === "ACTIONS" && "justify-end",
+                  )}
+                >
                   {column.label}
                   {column.sortable && getSortIcon(column.key as SortableColumn)}
                 </div>
@@ -144,20 +148,19 @@ export function GeneralRecordingsTable() {
                       className="h-24"
                     >
                       <div className="flex w-full items-center justify-center">
-                        Nenhum Paciente encontrado.
+                        Nenhuma Gravação encontrada.
                       </div>
                     </TableCell>
                   </TableRow>
                 )}
         </TableBody>
       </Table>
-      {recordings.length !== 0 && (
+      {recordingsTotalPages > 1 && (
         <div className="border-t border-t-zinc-200 p-2">
           <CustomPagination
             currentPage={recordingsFilters.page}
             setCurrentPage={(page) =>
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              setRecordingsFilters((prev: any) => ({ ...prev, page }))
+              setRecordingsFilters((prev) => ({ ...prev, page }))
             }
             pages={recordingsTotalPages}
           />

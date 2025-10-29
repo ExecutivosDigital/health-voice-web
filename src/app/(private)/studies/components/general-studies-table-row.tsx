@@ -7,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/blocks/tooltip";
+import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useState } from "react";
@@ -64,7 +65,12 @@ export function GeneralStudiesTableItem({ recording }: Props) {
       </TableCell>
       <TableCell className="py-2 text-xs font-medium whitespace-nowrap text-zinc-400">
         <div className="flex items-center justify-end">
-          <button className="bg-primary flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-white">
+          <button
+            className={cn(
+              "bg-primary flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-white",
+              "cursor-not-allowed opacity-50",
+            )}
+          >
             <span>Acessar</span>
             <ChevronRight className="h-4" />
           </button>

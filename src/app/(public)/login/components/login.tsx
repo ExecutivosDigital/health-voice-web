@@ -22,6 +22,8 @@ import { Form, FormField, FormItem, FormMessage } from "./form"; // Assumindo qu
 import { signIn, signInWithRedirect } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 
+import { useSession } from "@/context/auth"; // ← ADICIONE ISSO
+
 // Props do componente
 type SignInProps = {
   onClick: () => void; // Para "Esqueceu a senha?"
@@ -36,6 +38,7 @@ const FormSchema = z.object({
 type FormData = z.infer<typeof FormSchema>;
 
 const SignIn = ({ onClick }: SignInProps) => {
+  const { handleGetProfile, waitForTokens } = useSession(); // ← ADICIONE ISSO
   const router = useRouter();
   Amplify.configure(config);
 
@@ -55,26 +58,46 @@ const SignIn = ({ onClick }: SignInProps) => {
   // Efeito para "ouvir" eventos de autenticação do Amplify (NOVO)
   // Isso é crucial para o signInWithRedirect (login social)
   useEffect(() => {
-    // A função 'unsubscribe' é retornada pelo Hub.listen e usada para limpar o listener
-    const unsubscribe = Hub.listen("auth", ({ payload }) => {
+    const unsubscribe = Hub.listen("auth", async ({ payload }) => {
       switch (payload.event) {
         case "signedIn":
-          // Sucesso no login (seja social ou não)
-          toast.success("Login efetuado com sucesso!");
-          router.push("/"); // Redireciona para a dashboard
+          setIsLoggingIn(true);
+          try {
+            // ✅ Aguarda tokens
+            await waitForTokens();
+
+            // ✅ Carrega perfil
+            await handleGetProfile(true);
+
+            // ✅ Delay para sincronização
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            toast.success("Login efetuado com sucesso!");
+            router.push("/");
+          } catch (error) {
+            console.error("Erro ao carregar perfil após login social:", error);
+            toast.error("Erro ao carregar dados do usuário.");
+          } finally {
+            setIsLoggingIn(false);
+          }
           break;
+
         case "signInWithRedirect_failure":
-          // Falha no login social
           console.error("Falha no login social:", payload.data);
           toast.error("Falha ao tentar login com rede social.");
+          setIsLoggingIn(false);
           break;
-        // Você pode adicionar mais eventos aqui, como 'signedOut'
+
+        case "tokenRefresh_failure":
+          console.error("Falha ao renovar token:", payload.data);
+          toast.error("Sua sessão expirou. Faça login novamente.");
+          router.push("/login");
+          break;
       }
     });
 
-    // Função de limpeza do useEffect: remove o listener quando o componente desmontar
     return () => unsubscribe();
-  }, [router]);
+  }, [router, handleGetProfile, waitForTokens]);
 
   /**
    * Trata a submissão do formulário de e-mail e senha.
@@ -89,23 +112,35 @@ const SignIn = ({ onClick }: SignInProps) => {
         username: email.trim(),
         password: password.trim(),
         options: {
-          // Define o fluxo de autenticação (opcional, mas recomendado)
           authFlowType: "USER_PASSWORD_AUTH",
         },
       });
 
       if (isSignedIn) {
-        // O Hub listener (useEffect) também pegará este evento,
-        // mas podemos redirecionar imediatamente para uma melhor UX.
+        // ✅ AGUARDA os tokens propagarem
+        const tokensReady = await waitForTokens();
+
+        if (!tokensReady) {
+          toast.error("Erro ao carregar sessão. Tente novamente.");
+          return;
+        }
+
+        // ✅ FORÇA o carregamento do perfil
+        await handleGetProfile(true); // forceRefresh = true
+
+        // ✅ Pequeno delay para garantir que o Context atualizou
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // ✅ Agora redireciona com segurança
+        toast.success("Login efetuado com sucesso!");
         router.push("/");
       } else {
-        // Caso inesperado
         toast.error("Não foi possível completar o login. Tente novamente.");
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Erro no login:", error);
-      // Mapeia erros comuns do Amplify para mensagens amigáveis
+
       let errorMessage = "Erro ao efetuar login, tente novamente.";
       if (error.name === "UserNotFoundException") {
         errorMessage = "Usuário não encontrado.";
@@ -113,6 +148,10 @@ const SignIn = ({ onClick }: SignInProps) => {
         errorMessage = "E-mail ou senha incorretos.";
       } else if (error.name === "NetworkError") {
         errorMessage = "Erro de rede. Verifique sua conexão.";
+      } else if (error.name === "UserAlreadyAuthenticatedException") {
+        errorMessage = "Você já está logado.";
+        router.push("/");
+        return;
       }
       toast.error(errorMessage);
     } finally {
