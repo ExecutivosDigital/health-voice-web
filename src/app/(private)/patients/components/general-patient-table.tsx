@@ -25,7 +25,7 @@ export function GeneralPatientsTable() {
     isGettingPatients,
     patientsFilters,
     setPatientsFilters,
-    patientsPages,
+    patientsTotalPages,
   } = useGeneralContext();
 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -151,7 +151,7 @@ export function GeneralPatientsTable() {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               setPatientsFilters((prev: any) => ({ ...prev, page }))
             }
-            pages={patientsPages}
+            pages={patientsTotalPages}
           />
         </div>
       )}

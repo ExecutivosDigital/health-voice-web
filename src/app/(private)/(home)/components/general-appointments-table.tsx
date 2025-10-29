@@ -25,7 +25,7 @@ export function GeneralAppointmentsTable() {
     isGettingAppointments,
     appointmentsFilters,
     setAppointmentsFilters,
-    appointmentsPages,
+    appointmentsTotalPages,
   } = useGeneralContext();
 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -151,7 +151,7 @@ export function GeneralAppointmentsTable() {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               setAppointmentsFilters((prev: any) => ({ ...prev, page }))
             }
-            pages={appointmentsPages}
+            pages={appointmentsTotalPages}
           />
         </div>
       )}

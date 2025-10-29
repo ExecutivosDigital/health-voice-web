@@ -1,12 +1,11 @@
 "use client";
-import { GeneralAppointmentProps } from "@/@types/general-patient";
+import { AppointmentProps } from "@/@types/general-patient";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
 import { usePathname, useRouter } from "next/navigation";
 
 interface Props {
-  appointment: GeneralAppointmentProps;
+  appointment: AppointmentProps;
 }
 
 export function SelectedPatientTableItem({ appointment }: Props) {
@@ -33,7 +32,7 @@ export function SelectedPatientTableItem({ appointment }: Props) {
         3
       </TableCell>
       <TableCell className="py-0.5 text-sm font-medium whitespace-nowrap">
-        <div
+        {/* <div
           className={cn(
             "w-full text-center",
             appointment.status === "CLOSED" || appointment.status === "Recebido"
@@ -59,7 +58,7 @@ export function SelectedPatientTableItem({ appointment }: Props) {
                   : appointment.status === "DRAFT"
                     ? "Rascunho"
                     : "N/A"}{" "}
-        </div>
+        </div> */}
       </TableCell>
       <TableCell
         onClick={() => {

@@ -1,34 +1,49 @@
 "use client";
-import { useApiContext } from "@/context/ApiContext";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
-import { useCookies } from "next-client-cookies";
+
+// Importações do React e Next.js
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useEffect, useState } from "react";
+
+// Importações de bibliotecas
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Amplify } from "aws-amplify";
+import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import Field from "./field";
-import { Form, FormField, FormItem, FormMessage } from "./form";
+import config from "../../../../utils/amplify.json";
 
+// Importações de UI (shadcn/ui e lucide)
+import { Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
+import Field from "./field"; // Assumindo que este componente exista
+import { Form, FormField, FormItem, FormMessage } from "./form"; // Assumindo que este componente exista
+
+// Importações do AWS Amplify (NOVO)
+import { signIn, signInWithRedirect } from "aws-amplify/auth";
+import { Hub } from "aws-amplify/utils";
+
+// Props do componente
 type SignInProps = {
-  onClick: () => void;
+  onClick: () => void; // Para "Esqueceu a senha?"
 };
 
+// Schema de validação do Zod (sem alteração)
 const FormSchema = z.object({
-  email: z.email({ message: "Email Inválido" }),
+  email: z.string().email({ message: "Email Inválido" }),
   password: z.string().min(6, "Senha inválida"),
 });
 
+type FormData = z.infer<typeof FormSchema>;
+
 const SignIn = ({ onClick }: SignInProps) => {
-  const cookies = useCookies();
   const router = useRouter();
-  const { PostAPI, setToken } = useApiContext();
+  Amplify.configure(config);
+
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  // Configuração do react-hook-form (sem alteração)
+  const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     mode: "onChange",
     defaultValues: {
@@ -37,74 +52,125 @@ const SignIn = ({ onClick }: SignInProps) => {
     },
   });
 
-  const useFormSteps = (form: UseFormReturn<z.infer<typeof FormSchema>>) => {
-    const [activeStep, setActiveStep] = useState(0);
-
-    const stepFields = {
-      0: ["email", "password"] as const,
-    };
-
-    const validateStep = async (step: number) => {
-      const fields = stepFields[step as keyof typeof stepFields];
-      if (!fields) return true;
-      return await form.trigger(fields);
-    };
-
-    return { activeStep, validateStep, setActiveStep };
-  };
-
-  const { validateStep } = useFormSteps(form);
-
-  const handleNext = async (
-    form: UseFormReturn<z.infer<typeof FormSchema>>,
-  ) => {
-    const isValid = await validateStep(0);
-    if (!isValid) {
-      const errors = form.formState.errors;
-
-      const fieldLabels: Record<keyof z.infer<typeof FormSchema>, string> = {
-        email: "Email",
-        password: "Senha",
-      };
-
-      const firstErrorField = Object.keys(
-        errors,
-      )[0] as keyof typeof fieldLabels;
-      const firstError = errors[firstErrorField];
-
-      if (firstError?.message && firstErrorField in fieldLabels) {
-        const fieldLabel = fieldLabels[firstErrorField];
-        return toast.error(`${fieldLabel}: ${firstError.message}`);
+  // Efeito para "ouvir" eventos de autenticação do Amplify (NOVO)
+  // Isso é crucial para o signInWithRedirect (login social)
+  useEffect(() => {
+    // A função 'unsubscribe' é retornada pelo Hub.listen e usada para limpar o listener
+    const unsubscribe = Hub.listen("auth", ({ payload }) => {
+      switch (payload.event) {
+        case "signedIn":
+          // Sucesso no login (seja social ou não)
+          console.log("Usuário logado via Hub");
+          toast.success("Login efetuado com sucesso!");
+          router.push("/"); // Redireciona para a dashboard
+          break;
+        case "signInWithRedirect_failure":
+          // Falha no login social
+          console.error("Falha no login social:", payload.data);
+          toast.error("Falha ao tentar login com rede social.");
+          break;
+        // Você pode adicionar mais eventos aqui, como 'signedOut'
       }
+    });
 
-      return toast.error("Por favor, corrija os erros no formulário.");
-    } else {
-      setIsLoggingIn(true);
-      const login = await PostAPI("/client/auth", form.getValues(), false);
-      if (login.status === 200) {
-        cookies.set(
-          process.env.NEXT_PUBLIC_USER_TOKEN as string,
-          login.body.accessToken,
-        );
-        setToken(login.body.accessToken);
+    // Função de limpeza do useEffect: remove o listener quando o componente desmontar
+    return () => unsubscribe();
+  }, [router]);
+
+  /**
+   * Trata a submissão do formulário de e-mail e senha.
+   * (MODIFICADO: usa Amplify signIn em vez de PostAPI)
+   */
+  const handleLogin = async (data: FormData) => {
+    setIsLoggingIn(true);
+    try {
+      const { email, password } = data;
+
+      const { isSignedIn } = await signIn({
+        username: email.trim(),
+        password: password.trim(),
+        options: {
+          // Define o fluxo de autenticação (opcional, mas recomendado)
+          authFlowType: "USER_PASSWORD_AUTH",
+        },
+      });
+
+      if (isSignedIn) {
+        // O Hub listener (useEffect) também pegará este evento,
+        // mas podemos redirecionar imediatamente para uma melhor UX.
         router.push("/");
-        return setIsLoggingIn(false);
+      } else {
+        // Caso inesperado
+        toast.error("Não foi possível completar o login. Tente novamente.");
       }
-      toast.error("Erro ao efetuar login, tente novamente.");
+    } catch (error: any) {
+      console.error("Erro no login:", error);
+      // Mapeia erros comuns do Amplify para mensagens amigáveis
+      let errorMessage = "Erro ao efetuar login, tente novamente.";
+      if (error.name === "UserNotFoundException") {
+        errorMessage = "Usuário não encontrado.";
+      } else if (error.name === "NotAuthorizedException") {
+        errorMessage = "E-mail ou senha incorretos.";
+      } else if (error.name === "NetworkError") {
+        errorMessage = "Erro de rede. Verifique sua conexão.";
+      }
+      toast.error(errorMessage);
+    } finally {
       setIsLoggingIn(false);
     }
   };
 
+  /**
+   * Inicia o fluxo de login com Google. (NOVO)
+   */
+  const handleGoogleSignIn = async () => {
+    setIsLoggingIn(true); // Mostra o loader
+    try {
+      await signInWithRedirect({
+        provider: "Google",
+      });
+      // O usuário será redirecionado. O Hub listener cuidará do resto.
+    } catch (error) {
+      console.error("Erro ao iniciar Google SignIn:", error);
+      toast.error("Não foi possível iniciar o login com Google.");
+      setIsLoggingIn(false);
+    }
+  };
+
+  /**
+   * Inicia o fluxo de login com Apple. (NOVO)
+   */
+  const handleAppleSignIn = async () => {
+    setIsLoggingIn(true); // Mostra o loader
+    try {
+      await signInWithRedirect({
+        provider: "Apple",
+      });
+      // O usuário será redirecionado. O Hub listener cuidará do resto.
+    } catch (error) {
+      console.error("Erro ao iniciar Apple SignIn:", error);
+      toast.error("Não foi possível iniciar o login com Apple.");
+      setIsLoggingIn(false);
+    }
+  };
+
+  // Trata o "Enter" para submeter o formulário
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleNext(form);
+      // Dispara a validação e submissão do react-hook-form
+      form.handleSubmit(handleLogin)();
     }
   };
 
   return (
+    // Usa o 'onSubmit' do react-hook-form
     <Form {...form}>
-      <div className="flex flex-col gap-1 2xl:gap-4" onKeyDown={handleKeyPress}>
+      <form
+        onSubmit={form.handleSubmit(handleLogin)}
+        className="flex flex-col gap-1 2xl:gap-4"
+        onKeyDown={handleKeyPress} // Manter o onKeyDown no wrapper
+      >
         <FormField
           key="email"
           name="email"
@@ -115,8 +181,7 @@ const SignIn = ({ onClick }: SignInProps) => {
                 classInput="border-white/50"
                 placeholder="Email"
                 Svg={<Mail className="text-white/50" />}
-                value={field.value}
-                onChange={field.onChange}
+                {...field} // Simplifica a passagem de props
                 required
               />
               <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-rose-800" />
@@ -136,8 +201,7 @@ const SignIn = ({ onClick }: SignInProps) => {
                   placeholder="Senha"
                   Svg={<LockIcon className="text-white/50" />}
                   type={showPassword ? "text" : "password"}
-                  value={field.value}
-                  onChange={field.onChange}
+                  {...field} // Simplifica a passagem de props
                   required
                 />
                 <button
@@ -152,28 +216,31 @@ const SignIn = ({ onClick }: SignInProps) => {
             </FormItem>
           )}
         />
-      </div>
-      <button
-        className="mb-6 text-white/50 transition-colors"
-        type="button"
-        onClick={onClick}
-      >
-        Esqueceu a senha?
-      </button>
-      <button
-        onClick={() => handleNext(form)}
-        disabled={isLoggingIn}
-        className="text-primary w-full rounded-md bg-white px-4 py-2 font-semibold shadow-sm"
-      >
-        {isLoggingIn ? (
-          <div className="flex w-full items-center justify-center gap-2">
-            <Loader2 className="animate-spin" />
-            <span>Entrando</span>
-          </div>
-        ) : (
-          "Entrar Agora"
-        )}
-      </button>
+
+        <button
+          className="mb-6 text-white/50 transition-colors"
+          type="button"
+          onClick={onClick} // Para "Esqueceu a senha?"
+        >
+          Esqueceu a senha?
+        </button>
+
+        <button
+          type="submit" // Botão principal agora é 'submit'
+          disabled={isLoggingIn}
+          className="text-primary w-full rounded-md bg-white px-4 py-2 font-semibold shadow-sm"
+        >
+          {isLoggingIn ? (
+            <div className="flex w-full items-center justify-center gap-2">
+              <Loader2 className="animate-spin" />
+              <span>Entrando</span>
+            </div>
+          ) : (
+            "Entrar Agora"
+          )}
+        </button>
+      </form>
+
       <div className="mt-2 flex flex-col gap-4 xl:mt-4">
         <div className="flex w-full items-center gap-2">
           <div className="h-px w-full flex-1 bg-white/50" />
@@ -181,36 +248,39 @@ const SignIn = ({ onClick }: SignInProps) => {
           <div className="h-px w-full flex-1 bg-white/50" />
         </div>
         <div className="flex w-full items-center justify-center gap-2">
-          <button className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white">
+          {/* Botões sociais agora têm 'onClick' e 'type="button"' */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isLoggingIn}
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white disabled:opacity-50"
+          >
             <Image
               src="/icons/google-login.png"
-              alt=""
-              width={100}
-              height={100}
-              className="h-6 w-max object-contain"
+              alt="Logo do Google"
+              width={24} // Tamanho explícito é melhor
+              height={24}
+              className="h-6 w-6 object-contain" // Ajustado para w-6
             />
             Google
           </button>
-          <button className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white">
+          <button
+            type="button"
+            onClick={handleAppleSignIn}
+            disabled={isLoggingIn}
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white disabled:opacity-50"
+          >
             <Image
               src="/icons/apple-login.png"
-              alt=""
-              width={100}
-              height={100}
-              className="h-6 w-max object-contain"
+              alt="Logo da Apple"
+              width={24} // Tamanho explícito
+              height={24}
+              className="h-6 w-6 object-contain" // Ajustado para w-6
             />
             Apple
           </button>
         </div>
-        {/* <div className="flex items-center justify-center gap-2 text-sm text-white">
-          <span>Não tem conta ainda?</span>
-          <span
-            onClick={() => setSelectedStep(1)}
-            className="cursor-pointer text-white/50 hover:underline"
-          >
-            Conheça agora
-          </span>
-        </div> */}
+        {/* ... restante do seu JSX ... */}
       </div>
     </Form>
   );

@@ -1,9 +1,8 @@
-import { GeneralAppointmentProps } from "@/@types/general-patient";
+import { AppointmentProps } from "@/@types/general-patient";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
-import { cn } from "@/utils/cn";
 
 interface Props {
-  appointment: GeneralAppointmentProps;
+  appointment: AppointmentProps;
 }
 
 export function GeneralAppointmentTableItem({ appointment }: Props) {
@@ -26,7 +25,7 @@ export function GeneralAppointmentTableItem({ appointment }: Props) {
         3
       </TableCell>
       <TableCell className="py-0.5 text-sm font-medium whitespace-nowrap">
-        <div
+        {/* <div
           className={cn(
             "w-full text-center",
             appointment.status === "CLOSED" || appointment.status === "Recebido"
@@ -52,7 +51,7 @@ export function GeneralAppointmentTableItem({ appointment }: Props) {
                   : appointment.status === "DRAFT"
                     ? "Rascunho"
                     : "N/A"}{" "}
-        </div>
+        </div> */}
       </TableCell>
       <TableCell className="py-2 text-end text-sm font-medium whitespace-nowrap text-zinc-400 underline">
         4

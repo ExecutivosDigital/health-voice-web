@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { fetchAuthSession } from "@aws-amplify/auth";
+import { Amplify } from "aws-amplify";
 import axios from "axios";
-import { useCookies } from "next-client-cookies";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
+import config from "../utils/amplify.json";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,8 +27,6 @@ interface ApiContextProps {
     url: string,
     auth: boolean,
   ) => Promise<{ status: number; body: any }>;
-  token: string | undefined;
-  setToken: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -36,29 +36,28 @@ interface ProviderProps {
 }
 
 export const ApiContextProvider = ({ children }: ProviderProps) => {
-  const cookies = useCookies();
-
-  const [token, setToken] = useState<string | undefined>(
-    cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string),
-  );
+  Amplify.configure(config);
 
   const api = axios.create({
     baseURL,
   });
 
-  useEffect(() => {
-    const localToken = cookies.get(
-      process.env.NEXT_PUBLIC_USER_TOKEN as string,
-    );
-    if (localToken) {
-      setToken(localToken);
-    }
-  }, [cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string) ?? null]);
+  async function header(auth: boolean) {
+    let token = null;
 
-  function config(auth: boolean) {
+    if (auth) {
+      try {
+        const session = await fetchAuthSession();
+
+        token = session.tokens?.accessToken.toString();
+      } catch (error) {
+        console.log("Não foi possível obter a sessão do Cognito (v6)", error);
+      }
+    }
+
     return {
       headers: {
-        Authorization: auth ? `Bearer ${token}` : "",
+        Authorization: token ? `Bearer ${token}` : "",
         "ngrok-skip-browser-warning": "any",
       },
     };
@@ -66,107 +65,58 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
 
   async function PostAPI(url: string, data: unknown, auth: boolean) {
     const connect = await api
-      .post(url, data, config(auth))
-      .then(({ data }) => {
-        return {
-          status: 200,
-          body: data,
-        };
-      })
-      .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
-        return { status, body: message };
-      });
-
+      .post(url, data, await header(auth))
+      .then(({ data }) => ({ status: 200, body: data }))
+      .catch((err) => ({
+        status: err.response?.status || 500,
+        body: err.response?.data || "Erro desconhecido",
+      }));
     return connect.status === 500
-      ? {
-          status: connect.status,
-          body: "Ops! algo deu errado, tente novamente",
-        }
+      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
       : connect;
   }
 
   async function GetAPI(url: string, auth: boolean) {
     const connect = await api
-      .get(url, config(auth))
-      .then(({ data }) => {
-        return {
-          status: 200,
-          body: data,
-        };
-      })
-      .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
-        return { status, body: message };
-      });
-
+      .get(url, await header(auth))
+      .then(({ data }) => ({ status: 200, body: data }))
+      .catch((err) => ({
+        status: err.response?.status || 500,
+        body: err.response?.data || "Erro desconhecido",
+      }));
     return connect.status === 500
-      ? {
-          status: connect.status,
-          body: "Ops! algo deu errado, tente novamente",
-        }
+      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
       : connect;
   }
 
   async function PutAPI(url: string, data: unknown, auth: boolean) {
     const connect = await api
-      .put(url, data, config(auth))
-      .then(({ data }) => {
-        return {
-          status: 200,
-          body: data,
-        };
-      })
-      .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
-        return { status, body: message };
-      });
-
+      .put(url, data, await header(auth))
+      .then(({ data }) => ({ status: 200, body: data }))
+      .catch((err) => ({
+        status: err.response?.status || 500,
+        body: err.response?.data || "Erro desconhecido",
+      }));
     return connect.status === 500
-      ? {
-          status: connect.status,
-          body: "Ops! algo deu errado, tente novamente",
-        }
+      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
       : connect;
   }
 
   async function DeleteAPI(url: string, auth: boolean) {
     const connect = await api
-      .delete(url, config(auth))
-      .then(({ data }) => {
-        return {
-          status: 200,
-          body: data,
-        };
-      })
-      .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
-        return { status, body: message };
-      });
-
+      .delete(url, await header(auth))
+      .then(({ data }) => ({ status: 200, body: data }))
+      .catch((err) => ({
+        status: err.response?.status || 500,
+        body: err.response?.data || "Erro desconhecido",
+      }));
     return connect.status === 500
-      ? {
-          status: connect.status,
-          body: "Ops! algo deu errado, tente novamente",
-        }
+      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
       : connect;
   }
 
   return (
-    <ApiContext.Provider
-      value={{
-        PostAPI,
-        GetAPI,
-        PutAPI,
-        DeleteAPI,
-        token,
-        setToken,
-      }}
-    >
+    <ApiContext.Provider value={{ PostAPI, GetAPI, PutAPI, DeleteAPI }}>
       {children}
     </ApiContext.Provider>
   );

@@ -1,9 +1,8 @@
-import { GeneralPatientProps } from "@/@types/general-patient";
+import { PatientProps } from "@/@types/general-patient";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
-import { cn } from "@/utils/cn";
 
 interface Props {
-  patient: GeneralPatientProps;
+  patient: PatientProps;
 }
 
 export function GeneralPatientTableItem({ patient }: Props) {
@@ -26,7 +25,7 @@ export function GeneralPatientTableItem({ patient }: Props) {
         3
       </TableCell>
       <TableCell className="py-0.5 text-sm font-medium whitespace-nowrap">
-        <div
+        {/* <div
           className={cn(
             "w-full text-center",
             patient.status === "CLOSED" || patient.status === "Recebido"
@@ -51,7 +50,7 @@ export function GeneralPatientTableItem({ patient }: Props) {
                   : patient.status === "DRAFT"
                     ? "Rascunho"
                     : "N/A"}{" "}
-        </div>
+        </div> */}
       </TableCell>
       <TableCell className="py-2 text-end text-sm font-medium whitespace-nowrap text-zinc-400 underline">
         4

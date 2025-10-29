@@ -1,12 +1,11 @@
 "use client";
-import { GeneralPatientProps } from "@/@types/general-patient";
+import { PatientProps } from "@/@types/general-patient";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
 import { useRouter } from "next/navigation";
 
 interface Props {
-  patient: GeneralPatientProps;
+  patient: PatientProps;
 }
 
 export function GeneralPatientTableItem({ patient }: Props) {
@@ -32,7 +31,7 @@ export function GeneralPatientTableItem({ patient }: Props) {
         3
       </TableCell>
       <TableCell className="py-0.5 text-sm font-medium whitespace-nowrap">
-        <div
+        {/* <div
           className={cn(
             "w-full text-center",
             patient.status === "CLOSED" || patient.status === "Recebido"
@@ -57,7 +56,7 @@ export function GeneralPatientTableItem({ patient }: Props) {
                   : patient.status === "DRAFT"
                     ? "Rascunho"
                     : "N/A"}{" "}
-        </div>
+        </div> */}
       </TableCell>
       <TableCell
         onClick={() => {

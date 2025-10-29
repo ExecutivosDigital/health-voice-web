@@ -1,4 +1,5 @@
 import { ApiContextProvider } from "@/context/ApiContext";
+import { SessionProvider } from "@/context/auth";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { CookiesProvider } from "next-client-cookies/server";
@@ -54,7 +55,9 @@ export default function RootLayout({
           }}
         />
         <CookiesProvider>
-          <ApiContextProvider>{children}</ApiContextProvider>
+          <ApiContextProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </ApiContextProvider>
         </CookiesProvider>
       </body>
     </html>
