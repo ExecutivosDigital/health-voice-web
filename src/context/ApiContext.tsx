@@ -51,7 +51,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
 
         token = session.tokens?.accessToken.toString();
       } catch (error) {
-        console.log("Não foi possível obter a sessão do Cognito (v6)", error);
+        console.error("Não foi possível obter a sessão do Cognito (v6)", error);
       }
     }
 

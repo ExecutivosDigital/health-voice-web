@@ -48,7 +48,7 @@ const FormSchema = z.object({
 });
 
 const CreateAccount = () => {
-  const { PostAPI, setToken } = useApiContext();
+  const { PostAPI } = useApiContext();
   const cookies = useCookies();
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
@@ -127,7 +127,6 @@ const CreateAccount = () => {
           process.env.NEXT_PUBLIC_USER_TOKEN as string,
           create.body.accessToken,
         );
-        setToken(create.body.accessToken);
         router.push("/plans");
         return setIsCreating(false);
       }

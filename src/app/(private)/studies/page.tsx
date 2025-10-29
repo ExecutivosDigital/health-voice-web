@@ -1,9 +1,9 @@
-import { GeneralPatientsTable } from "./components/general-patient-table";
+import { GeneralStudiesTable } from "./components/general-studies-table";
 
-export default function Home() {
+export default function Studies() {
   return (
     <div className="flex w-full flex-col gap-4">
-      <GeneralPatientsTable />
+      <GeneralStudiesTable />
     </div>
   );
 }

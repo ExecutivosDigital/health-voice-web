@@ -1,9 +1,9 @@
-import { GeneralPatientsTable } from "./components/general-patient-table";
+import { GeneralRemindersTable } from "./components/general-reminder-table";
 
-export default function Home() {
+export default function Reminders() {
   return (
     <div className="flex w-full flex-col gap-4">
-      <GeneralPatientsTable />
+      <GeneralRemindersTable />
     </div>
   );
 }

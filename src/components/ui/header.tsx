@@ -3,6 +3,7 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import { Bell, Calendar, ChevronLeft, Clock, Menu, User } from "lucide-react";
+import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,7 +22,7 @@ interface BreadcrumbItem {
 }
 
 export function Header() {
-  const { selectedPatient, selectedAppointment } = useGeneralContext();
+  const { selectedClient, selectedRecording } = useGeneralContext();
   const { mobileMenu, setMobileMenu } = useSidebar();
   const pathname = usePathname();
   const cookies = useCookies();
@@ -30,33 +31,30 @@ export function Header() {
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const breadcrumbs: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
 
-    if (pathname.includes("/patients")) {
+    if (pathname.includes("/clients")) {
       const pathSegments = pathname.split("/").filter(Boolean);
 
       breadcrumbs.push({
         label: "Pacientes",
-        href: "/patients",
-        isActive: pathname === "/patients",
+        href: "/clients",
+        isActive: pathname === "/clients",
       });
 
       if (pathSegments.length >= 2 && pathSegments[1]) {
-        const patientId = pathSegments[1];
+        const clientId = pathSegments[1];
 
         breadcrumbs.push({
-          label: selectedPatient?.name || "Carregando...",
-          href: `/patients/${patientId}`,
-          isActive: pathname === `/patients/${patientId}`,
+          label: selectedClient?.name || "Carregando...",
+          href: `/clients/${clientId}`,
+          isActive: pathname === `/clients/${clientId}`,
         });
 
         if (pathSegments.length >= 3 && pathSegments[2]) {
-          const appointmentId = pathSegments[2];
+          const recordingId = pathSegments[2];
 
           breadcrumbs.push({
-            label:
-              selectedAppointment?.name ||
-              selectedAppointment?.title ||
-              "Consulta",
-            href: `/patients/${patientId}/${appointmentId}`,
+            label: selectedRecording?.name || "Consulta",
+            href: `/clients/${clientId}/${recordingId}`,
             isActive: true,
           });
         }
@@ -80,12 +78,7 @@ export function Header() {
 
   const breadcrumbs = useMemo(
     () => generateBreadcrumbs(),
-    [
-      pathname,
-      selectedPatient?.name,
-      selectedAppointment?.name,
-      selectedAppointment?.title,
-    ],
+    [pathname, selectedClient?.name, selectedRecording?.name],
   );
 
   const BreadcrumbItem = ({
@@ -176,7 +169,7 @@ export function Header() {
             <>
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => router.push("/patients")}
+                  onClick={() => router.push("/clients")}
                   className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-white px-4 text-white"
                 >
                   <ChevronLeft />
@@ -193,7 +186,7 @@ export function Header() {
                     )}
                     onClick={() =>
                       router.push(
-                        `/patients/${selectedPatient?.id}/${selectedAppointment?.id}`,
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}`,
                       )
                     }
                   >
@@ -208,7 +201,7 @@ export function Header() {
                     )}
                     onClick={() =>
                       router.push(
-                        `/patients/${selectedPatient?.id}/${selectedAppointment?.id}/chat`,
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/chat`,
                       )
                     }
                   >
@@ -223,7 +216,7 @@ export function Header() {
                     )}
                     onClick={() =>
                       router.push(
-                        `/patients/${selectedPatient?.id}/${selectedAppointment?.id}/transcription`,
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/transcription`,
                       )
                     }
                   >
@@ -234,15 +227,19 @@ export function Header() {
               <div className="flex items-center gap-2 text-white/50">
                 <div className="flex items-center gap-2">
                   <User />
-                  <span>{selectedPatient?.name}</span>
+                  <span>{selectedClient?.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar />
-                  <span>{selectedPatient?.date}</span>
+                  <span>
+                    {moment(selectedRecording?.createdAt).format(
+                      "DD/MM/YYYY HH:mm",
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock />
-                  <span>{selectedPatient?.time}</span>
+                  <span>{selectedRecording?.duration}</span>
                 </div>
               </div>
             </>
@@ -272,11 +269,11 @@ export function Header() {
                 <span
                   className={cn(
                     "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
-                    pathname.startsWith("/patients")
+                    pathname.startsWith("/clients")
                       ? "border-b-white"
                       : "border-b-white/10",
                   )}
-                  onClick={() => router.push("/patients")}
+                  onClick={() => router.push("/clients")}
                 >
                   Pacientes
                 </span>

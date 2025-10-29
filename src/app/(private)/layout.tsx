@@ -21,10 +21,10 @@ export default function RootLayout({
 
   return (
     <GeneralContextProvider>
-      <div className="relative flex min-h-screen w-full flex-col">
+      <div className="relative flex w-full flex-col pb-20">
         <Header />
         <Sidebar />
-        <div className="z-10 mx-auto -mt-12 flex h-[80vh] w-full max-w-[1280px] flex-col gap-4 rounded-t-3xl bg-white p-4">
+        <div className="z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 rounded-3xl bg-white p-4">
           {children}
         </div>
       </div>

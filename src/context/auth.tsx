@@ -71,7 +71,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
    * Invalida o cache de sessão
    */
   const invalidateSessionCache = useCallback(() => {
-    console.log("🗑️ Invalidando cache de sessão");
     sessionCacheRef.current = null;
     sessionCheckPromise.current = null;
   }, []);
@@ -80,8 +79,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
    * Aguarda até que os tokens estejam disponíveis (com retry)
    */
   const waitForTokens = useCallback(async (): Promise<boolean> => {
-    console.log("⏳ Aguardando tokens do Amplify...");
-
     const maxRetries = 10;
     const retryDelay = 300; // 300ms entre tentativas
 
@@ -90,16 +87,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
         const { tokens } = await fetchAuthSession({ forceRefresh: false });
 
         if (tokens?.accessToken) {
-          console.log(`✅ Tokens disponíveis após ${i + 1} tentativa(s)`);
           return true;
         }
 
-        console.log(
-          `⏳ Tentativa ${i + 1}/${maxRetries} - tokens ainda não disponíveis`,
-        );
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
       } catch (error) {
-        console.log(`⚠️ Erro na tentativa ${i + 1}:`, error);
+        console.error(`⚠️ Erro na tentativa ${i + 1}:`, error);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
       }
     }
@@ -122,24 +115,17 @@ export function SessionProvider({ children }: PropsWithChildren) {
         sessionCacheRef.current &&
         now - sessionCacheRef.current.timestamp < CACHE_TTL
       ) {
-        console.log(
-          "📦 Usando cache de sessão:",
-          sessionCacheRef.current.value,
-        );
         return sessionCacheRef.current.value;
       }
 
       // Se já existe uma promise em andamento, retorna ela
       if (sessionCheckPromise.current && !forceRefresh) {
-        console.log("⏳ Reutilizando verificação de sessão em andamento...");
         return sessionCheckPromise.current;
       }
 
       // Cria nova promise de verificação
       sessionCheckPromise.current = (async () => {
         try {
-          console.log("🔍 Iniciando verificação de sessão...");
-
           const [sessionResult, userResult] = await Promise.allSettled([
             fetchAuthSession({ forceRefresh }),
             getCurrentUser(),
@@ -158,12 +144,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
             value: isValid,
             timestamp: Date.now(),
           };
-
-          console.log("✅ Verificação de sessão completa:", {
-            hasTokens,
-            hasUser,
-            isValid,
-          });
 
           return isValid;
         } catch (error) {
@@ -195,8 +175,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
    */
   const forceSignOut = useCallback(async () => {
     try {
-      console.log("🚪 Forçando sign out completo...");
-
       // ✅ Limpa estado local ANTES do signOut
       setProfile(null);
       setAvailableRecording(0);
@@ -206,13 +184,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
       try {
         const session = await fetchAuthSession();
         if (session.tokens) {
-          console.log("🔓 Sessão encontrada, fazendo signOut...");
           await signOut({ global: true });
-        } else {
-          console.log("ℹ️ Nenhuma sessão ativa para deslogar");
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (signOutError: any) {
-        console.log(
+        console.error(
           "⚠️ Erro ao fazer signOut (ignorado):",
           signOutError.message,
         );
@@ -221,8 +197,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
       // ✅ Aguarda um pouco para garantir que tudo foi limpo
       await new Promise((resolve) => setTimeout(resolve, 300));
-
-      console.log("✅ Sign out completo");
     } catch (error) {
       console.error("❌ Erro ao fazer sign out:", error);
 
@@ -240,7 +214,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const handleGetProfile = useCallback(
     async (forceRefresh = false, retryCount = 0): Promise<void> => {
       if (isLoadingProfile.current) {
-        console.log("⏭️ handleGetProfile já está em execução");
         return;
       }
 
@@ -250,7 +223,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
       try {
         // Se forceRefresh, aguarda tokens antes de verificar sessão
         if (forceRefresh) {
-          console.log("🔄 ForceRefresh ativado, aguardando tokens...");
           const tokensReady = await waitForTokens();
 
           if (!tokensReady) {
@@ -267,20 +239,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
         const hasSession = await checkSession(forceRefresh);
 
         if (!hasSession) {
-          console.log("❌ Sem sessão válida no handleGetProfile");
           setProfile(null);
           return;
         }
 
-        console.log("📡 Buscando perfil do usuário...");
         const response = await GetAPI("/user", true);
-        console.log("profile: ", response);
 
         if (response.status === 200) {
-          console.log("✅ Perfil carregado:", response.body.profile.email);
           setProfile(response.body.profile);
         } else if (response.status === 401 && retryCount < 1) {
-          console.log("🔄 Token expirado, fazendo refresh...");
           invalidateSessionCache();
           await fetchAuthSession({ forceRefresh: true });
 
@@ -294,6 +261,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
             await forceSignOut();
           }
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("❌ Erro no handleGetProfile:", error);
 
@@ -346,26 +314,21 @@ export function SessionProvider({ children }: PropsWithChildren) {
    */
   useEffect(() => {
     let mounted = true;
-    let initTimeout: ReturnType<typeof setTimeout>;
 
     const initializeSession = async () => {
       if (!mounted) return;
 
       try {
-        console.log("🚀 Inicializando SessionProvider...");
-
         const hasSession = await checkSession();
 
         if (!mounted) return;
 
         if (hasSession) {
-          console.log("✅ Sessão encontrada, carregando dados...");
           await Promise.all([
             handleGetProfile(),
             handleGetAvailableRecording(),
           ]);
         } else {
-          console.log("ℹ️ Nenhuma sessão ativa");
           setLoading(false);
         }
       } catch (error) {
@@ -376,7 +339,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       }
     };
 
-    initTimeout = setTimeout(() => {
+    const initTimeout = setTimeout(() => {
       initializeSession();
     }, 100);
 

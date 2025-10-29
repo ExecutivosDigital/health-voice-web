@@ -60,7 +60,6 @@ const SignIn = ({ onClick }: SignInProps) => {
       switch (payload.event) {
         case "signedIn":
           // Sucesso no login (seja social ou não)
-          console.log("Usuário logado via Hub");
           toast.success("Login efetuado com sucesso!");
           router.push("/"); // Redireciona para a dashboard
           break;
@@ -103,6 +102,7 @@ const SignIn = ({ onClick }: SignInProps) => {
         // Caso inesperado
         toast.error("Não foi possível completar o login. Tente novamente.");
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Erro no login:", error);
       // Mapeia erros comuns do Amplify para mensagens amigáveis
