@@ -59,12 +59,19 @@ export function GeneralRecordingTableItem({ recording }: Props) {
               router.push(`/clients/${recording.client?.id}/${recording.id}`);
             }}
             className={cn(
-              "bg-primary flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-white",
+              "bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white",
               recording.client === null && "cursor-not-allowed opacity-50",
+              recording.client !== null &&
+                "transition ease-in-out hover:shadow-md",
             )}
           >
             <span>Acessar</span>
-            <ChevronRight className="h-4" />
+            <ChevronRight
+              className={cn(
+                "h-4 transition ease-in-out",
+                recording.client !== null && "group-hover:translate-x-1",
+              )}
+            />
           </button>
         </div>
       </TableCell>

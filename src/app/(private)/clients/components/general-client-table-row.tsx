@@ -52,10 +52,10 @@ export function GeneralClientTableItem({ client }: Props) {
               });
               router.push(`/clients/${client.id}`);
             }}
-            className="bg-primary flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-white"
+            className="bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md"
           >
             <span>Acessar</span>
-            <ChevronRight className="h-4" />
+            <ChevronRight className="h-4 transition ease-in-out group-hover:translate-x-1" />
           </button>
         </div>
       </TableCell>

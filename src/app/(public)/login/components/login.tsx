@@ -256,18 +256,17 @@ const SignIn = ({ onClick }: SignInProps) => {
           )}
         />
 
-        <button
-          className="mb-6 text-white/50 transition-colors"
-          type="button"
+        <span
+          className="mb-6 cursor-pointer text-white/50 transition hover:text-white/60"
           onClick={onClick} // Para "Esqueceu a senha?"
         >
           Esqueceu a senha?
-        </button>
+        </span>
 
         <button
           type="submit" // Botão principal agora é 'submit'
           disabled={isLoggingIn}
-          className="text-primary w-full rounded-md bg-white px-4 py-2 font-semibold shadow-sm"
+          className="text-primary w-full rounded-3xl bg-white px-4 py-2 font-semibold shadow-sm transition hover:shadow-lg"
         >
           {isLoggingIn ? (
             <div className="flex w-full items-center justify-center gap-2">
@@ -292,7 +291,7 @@ const SignIn = ({ onClick }: SignInProps) => {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoggingIn}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white disabled:opacity-50"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-white font-semibold text-white disabled:opacity-50"
           >
             <Image
               src="/icons/google-login.png"
@@ -307,7 +306,7 @@ const SignIn = ({ onClick }: SignInProps) => {
             type="button"
             onClick={handleAppleSignIn}
             disabled={isLoggingIn}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-white font-semibold text-white disabled:opacity-50"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-white font-semibold text-white disabled:opacity-50"
           >
             <Image
               src="/icons/apple-login.png"

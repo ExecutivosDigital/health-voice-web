@@ -293,13 +293,13 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
         <div className="mt-4 flex w-full items-center justify-center gap-4">
           <button
             onClick={() => onClick()}
-            className="rounded-md border border-white/50 bg-transparent px-4 py-2 text-white/50"
+            className="rounded-3xl border border-white/50 bg-transparent px-4 py-2 text-white/50"
           >
             Voltar
           </button>
           <button
             onClick={() => handleNext(form)}
-            className="text-primary flex w-full items-center justify-center rounded-md bg-white px-4 py-2 font-semibold shadow-sm"
+            className="text-primary flex w-full items-center justify-center rounded-3xl bg-white px-4 py-2 font-semibold shadow-sm transition hover:shadow-lg"
           >
             {isLoading ? (
               <Loader2 className="animate-spin" />

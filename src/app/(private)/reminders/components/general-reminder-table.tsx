@@ -93,7 +93,7 @@ export function GeneralRemindersTable() {
   return (
     <>
       <GeneralRemindersTableHeader />
-      <Table wrapperClass="h-full">
+      <Table wrapperClass="h-full rounded-t-3xl">
         <TableHeader>
           <TableRow className="gap-1 bg-neutral-200">
             {GeneralRemindersColumns.map((column) => (
@@ -102,9 +102,6 @@ export function GeneralRemindersTable() {
                 className={cn(
                   "h-12 text-sm text-zinc-500",
                   column.sortable && "cursor-pointer",
-                  (column.key === "exceedLedgerAccountBudget" ||
-                    column.key === "exceedResultCenterBudget") &&
-                    "w-48 max-w-48 min-w-48 text-xs",
                 )}
                 onClick={() =>
                   column.sortable && handleSort(column.key as SortableColumn)
@@ -112,7 +109,7 @@ export function GeneralRemindersTable() {
               >
                 <div
                   className={cn(
-                    "flex items-center gap-2",
+                    "flex w-max items-center gap-2",
                     column.key === "ACTIONS" && "justify-end",
                   )}
                 >
@@ -154,7 +151,7 @@ export function GeneralRemindersTable() {
                 )}
         </TableBody>
       </Table>
-      {remindersTotalPages > 1 && (
+      {!isGettingReminders && remindersTotalPages > 1 && (
         <div className="border-t border-t-zinc-200 p-2">
           <CustomPagination
             currentPage={remindersFilters.page}

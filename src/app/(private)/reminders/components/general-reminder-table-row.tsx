@@ -69,7 +69,7 @@ export function GeneralReminderTableItem({ reminder }: Props) {
         <div className="flex items-center justify-end">
           <button
             className={cn(
-              "bg-primary flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-white",
+              "bg-primary flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white",
               "cursor-not-allowed opacity-50",
             )}
           >

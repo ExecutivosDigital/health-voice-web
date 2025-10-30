@@ -8,13 +8,15 @@ export function General() {
   const { selectedRecording } = useGeneralContext();
 
   return (
-    <div className="prose max-w-none">
+    <div className="prose prose-sm w-full max-w-none">
       {selectedRecording?.transcription ? (
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {selectedRecording?.transcription}
         </ReactMarkdown>
       ) : (
-        <h1 className="m-auto w-max text-center">Transcrição não disponível</h1>
+        <h1 className="m-auto w-full text-center md:w-max">
+          Transcrição não disponível
+        </h1>
       )}
     </div>
   );

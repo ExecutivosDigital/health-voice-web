@@ -37,7 +37,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 
         if (!recheckValid) {
           hasRedirected.current = true;
-          router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+          router.push("/login");
         }
       }
     };

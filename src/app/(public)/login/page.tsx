@@ -13,9 +13,9 @@ export default function Login() {
   return (
     <>
       <div className="relative flex h-full min-h-[100svh] flex-col gap-2 overflow-x-hidden p-2 xl:flex-row 2xl:gap-4 2xl:p-4">
-        <div className="to-primary relative mx-auto flex w-full flex-col overflow-hidden rounded-[1.25rem] bg-gradient-to-b from-gray-800 xl:max-w-[50vw] xl:justify-between xl:p-8">
+        <div className="to-primary relative mx-auto flex w-full flex-col overflow-hidden rounded-3xl bg-gradient-to-b from-gray-800 xl:max-w-[50vw] xl:justify-between xl:p-8">
           <Image
-            className="object-full absolute top-0 left-0 m-auto block h-full w-full rounded-[1.25rem]"
+            className="object-full absolute top-0 left-0 m-auto block h-full w-full rounded-3xl"
             src="/static/login.png"
             alt=""
             width={1000}
@@ -39,8 +39,8 @@ export default function Login() {
             </span>
           </div>
         </div>
-        <div className="relative flex w-full rounded-[1.25rem] bg-white p-2 xl:max-w-[50vw]">
-          <div className="bg-primary m-auto w-full max-w-[31.5rem] rounded-[1.25rem] xl:p-8">
+        <div className="relative flex w-full rounded-3xl bg-white p-2 xl:max-w-[50vw]">
+          <div className="bg-primary m-auto w-full max-w-[31.5rem] rounded-3xl xl:p-8">
             {forgot ? (
               <ForgotPassword onClick={() => setForgot(false)} />
             ) : (

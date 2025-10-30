@@ -57,13 +57,13 @@ const Field = ({
         )}
         <div className="relative">
           {Svg && (
-            <svg className="text-[rgb(108 114 117 / 0.5)] pointer-events-none absolute top-2 left-2 h-10 transition-colors 2xl:top-3.5 2xl:h-13">
+            <svg className="text-[rgb(108 114 117 / 0.5)] pointer-events-none absolute top-2 left-4 h-10 transition-colors 2xl:top-3.5 2xl:h-13">
               {Svg}
             </svg>
           )}
           {textarea ? (
             <textarea
-              className={`bg-n-2 border-n-2 base2 text-n-7 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-24 w-full resize-none rounded-md border-2 px-3.5 py-3 transition-colors outline-none focus:bg-transparent ${
+              className={`bg-n-2 border-n-2 base2 text-n-7 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-24 w-full resize-none rounded-3xl border-2 px-3.5 py-3 transition-colors outline-none focus:bg-transparent ${
                 (icon || Svg) && "pl-[3.125rem]"
               } ${value !== "" && "dark:bg-n-8 border-n-3/50 bg-transparent"}`}
               value={value}
@@ -77,7 +77,7 @@ const Field = ({
           ) : (
             <input
               className={twMerge(
-                `bg-n-2 border-n-2 base2 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-10 w-full rounded-md border-2 px-3.5 text-white transition-colors outline-none focus:border-white/20 focus:bg-transparent 2xl:h-13 dark:focus:border-white/20 ${
+                `bg-n-2 border-n-2 base2 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-10 w-full rounded-3xl border-2 px-3.5 text-white transition-colors outline-none focus:border-white/20 focus:bg-transparent 2xl:h-13 dark:focus:border-white/20 ${
                   (icon || Svg) && "pl-[3.125rem]"
                 } ${
                   value !== "" && "dark:bg-n-8 border-white/20 bg-transparent"

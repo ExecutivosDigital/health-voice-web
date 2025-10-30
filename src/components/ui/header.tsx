@@ -3,7 +3,7 @@ import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { Bell, Calendar, ChevronLeft, Clock, Menu, User } from "lucide-react";
+import { Bell, Calendar, ChevronLeft, Menu, User } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
@@ -114,20 +114,22 @@ export function Header() {
           quality={100}
           width={1250}
           height={500}
-          className="h-16 w-max object-contain"
+          className="h-16 w-max cursor-pointer object-contain"
+          onClick={() => router.push("/")}
         />
+
         <div className="flex h-max items-center gap-2">
           <div className="hidden items-center gap-2 xl:flex">
-            <div className="flex items-center justify-center rounded-full bg-white/10 p-2 text-white">
-              <Bell />
+            <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
+              <Bell className="h-4" />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center justify-center rounded-full bg-white/10 p-2 text-white">
-                  <User />
+                <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
+                  <User className="h-4" />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="border-none bg-white text-black">
                 <DropdownMenuItem
                   onSelect={() => {
                     cookies.remove(
@@ -151,7 +153,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-2">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-4">
         <div className="flex items-center gap-2 text-xl">
           <span>Bem vindo,</span>
           <span className="font-semibold">Dr. Matheus</span>
@@ -167,25 +169,25 @@ export function Header() {
           ))}
         </div>
 
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between overflow-x-scroll pb-4 md:overflow-x-hidden">
           {pathname.split("/").filter(Boolean).length >= 3 ? (
-            <>
+            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push("/clients")}
-                  className="flex h-10 cursor-pointer items-center gap-2 rounded-md border border-white px-4 text-white"
+                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
                 >
-                  <ChevronLeft />
+                  <ChevronLeft className="h-4 w-4" />
                   <span className="font-semibold">Voltar</span>
                 </button>
-                <div className="flex h-10 items-center">
+                <div className="flex h-8 items-center">
                   <span
                     className={cn(
-                      "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
                         !pathname.includes("/transcription")
                         ? "border-b-white"
-                        : "border-b-white/10",
+                        : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
                       router.push(
@@ -197,10 +199,10 @@ export function Header() {
                   </span>
                   <span
                     className={cn(
-                      "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/chat")
                         ? "border-b-white"
-                        : "border-b-white/10",
+                        : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
                       router.push(
@@ -212,10 +214,10 @@ export function Header() {
                   </span>
                   <span
                     className={cn(
-                      "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/transcription")
                         ? "border-b-white"
-                        : "border-b-white/10",
+                        : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
                       router.push(
@@ -228,31 +230,51 @@ export function Header() {
                 </div>
               </div>
               <div className="flex items-center gap-2 text-white/50">
-                <div className="flex items-center gap-2">
-                  <User />
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/user.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
                   <span>{selectedClient?.name}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar />
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/calendar.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
                   <span>
                     {moment(selectedRecording?.createdAt).format(
-                      "DD/MM/YYYY HH:mm",
+                      "DD/MM/YYYY - HH:mm",
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock />
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/clock.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
                   <span>{selectedRecording?.duration}</span>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
             <>
-              <div className="flex h-10 items-center">
+              <div className="flex h-8 items-center gap-4">
                 <span
                   className={cn(
-                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
-                    pathname === "/" ? "border-b-white" : "border-b-white/10",
+                    "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    pathname === "/"
+                      ? "border-b-white"
+                      : "border-b-white/10 text-white/50",
                   )}
                   onClick={() => router.push("/")}
                 >
@@ -260,10 +282,10 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/reminders"
                       ? "border-b-white"
-                      : "border-b-white/10",
+                      : "border-b-white/10 text-white/50",
                   )}
                   onClick={() => router.push("/reminders")}
                 >
@@ -271,10 +293,10 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname.startsWith("/clients")
                       ? "border-b-white"
-                      : "border-b-white/10",
+                      : "border-b-white/10 text-white/50",
                   )}
                   onClick={() => router.push("/clients")}
                 >
@@ -282,18 +304,18 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white",
+                    "h-full cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/studies"
                       ? "border-b-white"
-                      : "border-b-white/10",
+                      : "border-b-white/10 text-white/50",
                   )}
                   onClick={() => router.push("/studies")}
                 >
                   Estudos
                 </span>
               </div>
-              <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2">
-                <Calendar />
+              <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
+                <Calendar className="h-4" />
                 <span>Outubro</span>
               </button>
             </>
