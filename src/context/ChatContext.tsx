@@ -1,7 +1,11 @@
 "use client";
 
-import { MessageProps } from "@/app/(private)/clients/(selected-client)/[selected-client-id]/(selected-appointment)/[selected-appointment-id]/chat/page";
 import { createContext, useContext, useState } from "react";
+
+export interface MessageProps {
+  text: string;
+  entity: "USER" | "MODEL";
+}
 
 // const baseURL = process.env.NEXT_PUBLIC_API_URL;
 

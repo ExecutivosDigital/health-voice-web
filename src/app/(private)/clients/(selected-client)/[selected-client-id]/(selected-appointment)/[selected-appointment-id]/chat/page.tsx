@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 // import { MessageProps } from "@/@types/global";
-import { useChatContext } from "@/context/ChatContext";
+import { MessageProps, useChatContext } from "@/context/ChatContext";
 // import { useModelContext } from "@/context/ModelContext";
 import { ArrowDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -19,11 +19,6 @@ export type GalleryItem = {
   mediaType?: "image" | "video";
   placeholder?: boolean;
 };
-
-export interface MessageProps {
-  text: string;
-  entity: "USER" | "MODEL";
-}
 
 export default function ChatPage() {
   const { selectedChatMessages, isChatsLoading } = useChatContext();

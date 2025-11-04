@@ -12,7 +12,7 @@ export function Sidebar() {
         className={cn(
           "fixed top-0 left-0 z-[9999] h-screen w-[248px] -translate-x-full border-r border-r-stone-700 transition duration-300 ease-in xl:w-[calc(100%-450px)]",
           !mobileMenu && "transparent pointer-events-none",
-          mobileMenu && "bg-bg-1 translate-x-0 backdrop-blur",
+          mobileMenu && "translate-x-0 bg-neutral-200 backdrop-blur",
         )}
       >
         <div className="px-4 py-4">
@@ -32,7 +32,7 @@ export function Sidebar() {
           <div className="flex flex-col gap-4 p-4">
             <button className="border-light text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold">
               <Image
-                src="/icons/play-store.png"
+                src="/icons/google-login.png"
                 alt=""
                 width={100}
                 height={100}
@@ -42,7 +42,7 @@ export function Sidebar() {
             </button>
             <button className="border-primary bg-primary text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold">
               <Image
-                src="/icons/apple.png"
+                src="/icons/apple-login.png"
                 alt=""
                 width={100}
                 height={100}

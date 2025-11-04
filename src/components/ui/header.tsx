@@ -154,7 +154,7 @@ export function Header() {
       </div>
 
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-4">
-        <div className="flex items-center gap-2 text-xl">
+        <div className="flex flex-col items-start gap-2 text-xl md:flex-row md:items-center">
           <span>Bem vindo(a),</span>
           <span className="font-semibold">{profile?.name}</span>
         </div>

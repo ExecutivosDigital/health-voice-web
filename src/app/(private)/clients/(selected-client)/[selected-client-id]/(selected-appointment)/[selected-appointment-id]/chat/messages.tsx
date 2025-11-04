@@ -1,7 +1,7 @@
+import { MessageProps } from "@/context/ChatContext";
 import moment from "moment";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { MessageProps } from "./page";
 
 interface Props {
   message: MessageProps;

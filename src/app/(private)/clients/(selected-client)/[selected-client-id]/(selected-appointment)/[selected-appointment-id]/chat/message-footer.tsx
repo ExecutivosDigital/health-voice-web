@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useChatContext } from "@/context/ChatContext";
+import { MessageProps, useChatContext } from "@/context/ChatContext";
 import { Loader2, SendHorizontal } from "lucide-react";
 import React, { useRef, useState } from "react";
-import { MessageProps } from "./page";
 
 export function MessageFooter({ onSend }: { onSend: () => void }) {
   const { setSelectedChatMessages } = useChatContext();
