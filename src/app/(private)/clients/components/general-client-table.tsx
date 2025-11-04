@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { GeneralClientsTableHeader } from "./general-client-table-header";
 import { GeneralClientTableItem } from "./general-client-table-row";
 
-type SortableColumn = "NAME" | "BIRTH_DATE" | null;
+type SortableColumn = "NAME" | "BIRTH_DATE" | "DESCRIPTION" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
@@ -35,7 +35,7 @@ export function GeneralClientsTable() {
   const GeneralClientsColumns = [
     { key: "NAME", label: "Nome do Paciente", sortable: true },
     { key: "BIRTH_DATE", label: "Data de Nascimento", sortable: true },
-    // { key: "RECORDINGS", label: "Quantidade de Gravações", sortable: true },
+    { key: "DESCRIPTION", label: "Descrição", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 

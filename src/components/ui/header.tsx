@@ -25,7 +25,7 @@ interface BreadcrumbItem {
 export function Header() {
   const { selectedClient, selectedRecording } = useGeneralContext();
   const { mobileMenu, setMobileMenu } = useSidebar();
-  const { clearSession } = useSession();
+  const { clearSession, profile } = useSession();
   const pathname = usePathname();
   const cookies = useCookies();
   const router = useRouter();
@@ -155,8 +155,8 @@ export function Header() {
 
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-4">
         <div className="flex items-center gap-2 text-xl">
-          <span>Bem vindo,</span>
-          <span className="font-semibold">Dr. Matheus</span>
+          <span>Bem vindo(a),</span>
+          <span className="font-semibold">{profile?.name}</span>
         </div>
 
         <div className="flex items-center gap-1 text-xs text-white/50">

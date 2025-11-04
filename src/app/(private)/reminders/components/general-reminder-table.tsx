@@ -35,7 +35,7 @@ export function GeneralRemindersTable() {
   const GeneralRemindersColumns = [
     { key: "NAME", label: "Título da Gravação", sortable: true },
     { key: "DATE", label: "Data da Gravação", sortable: true },
-    { key: "DESCRIPTION", label: "Status", sortable: true },
+    { key: "DESCRIPTION", label: "Descrição", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 

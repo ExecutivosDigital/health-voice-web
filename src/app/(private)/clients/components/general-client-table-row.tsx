@@ -1,11 +1,18 @@
 "use client";
 import { ClientProps } from "@/@types/general-client";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/blocks/tooltip";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface Props {
   client: ClientProps;
@@ -15,6 +22,8 @@ export function GeneralClientTableItem({ client }: Props) {
   const { setSelectedClient, recordingsFilters, setRecordingsFilters } =
     useGeneralContext();
   const router = useRouter();
+
+  const [selectedTooltip, setSelectedTooltip] = useState<string | null>(null);
 
   return (
     <TableRow
@@ -38,9 +47,37 @@ export function GeneralClientTableItem({ client }: Props) {
       <TableCell className="py-0.5 text-start text-sm font-medium whitespace-nowrap">
         {moment(client.birthDate).format("DD/MM/YYYY") || "N/A"}
       </TableCell>
-      {/* <TableCell className="py-0.5 text-start text-sm font-medium whitespace-nowrap">
-        3
-      </TableCell> */}
+      <TableCell className="w-80 max-w-80 truncate py-0.5 text-start text-sm font-medium whitespace-nowrap">
+        <TooltipProvider>
+          <Tooltip
+            open={selectedTooltip === client.id}
+            onOpenChange={() =>
+              setSelectedTooltip(
+                selectedTooltip === client.id ? null : (client.id as string),
+              )
+            }
+          >
+            <TooltipTrigger
+              asChild
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedTooltip(client.id as string);
+              }}
+            >
+              <span className="w-80 max-w-80 truncate">
+                {client.description || "N/A"}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent
+              className="text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]"
+              side="top"
+              align="start"
+            >
+              <span>{client.description}</span>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </TableCell>
       <TableCell className="py-2 text-xs font-medium whitespace-nowrap text-zinc-400">
         <div className="flex items-center justify-end">
           <button
