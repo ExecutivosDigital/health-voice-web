@@ -1,20 +1,26 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
+import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { Play } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/blocks/dropdown-menu";
 import { AudioVisualizer } from "./audio-visualizer";
 import { useAudioRecorder } from "./use-audio-recorder";
 
 export type RecordingType = "CLIENT" | "REMINDER" | "STUDY" | "OTHER";
 
 interface AudioRecorderProps {
-  type?: RecordingType;
   title?: string;
   userName?: string;
   userId?: string;
-  onSave?: (data: SaveRecordingData) => Promise<void>;
 }
 
 interface SaveRecordingData {
@@ -28,13 +34,13 @@ interface SaveRecordingData {
 }
 
 export function AudioRecorder({
-  type = "CLIENT",
   title = "",
   userName = "",
   userId = "",
-  onSave,
 }: AudioRecorderProps) {
   const { PostAPI } = useApiContext();
+  const { GetClients, GetRecordings, GetReminders, clients } =
+    useGeneralContext();
   const {
     isRecording,
     isPaused,
@@ -48,6 +54,15 @@ export function AudioRecorder({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [payload, setPayload] = useState<SaveRecordingData>({
+    name: "",
+    description: "",
+    duration: "",
+    seconds: 0,
+    audioUrl: "",
+    type: "CLIENT",
+    clientId: userId,
+  });
 
   const derivedTitle = (() => {
     const labelByType: Record<RecordingType, string> = {
@@ -56,7 +71,7 @@ export function AudioRecorder({
       STUDY: "Estudo",
       OTHER: "Gravação",
     };
-    const base = title || labelByType[type];
+    const base = title || labelByType[payload.type];
     if (userName) return `${base} ${userName}`;
     return base;
   })();
@@ -95,7 +110,6 @@ export function AudioRecorder({
     const formData = new FormData();
     formData.append("file", f);
     const response = await PostAPI("/convert", formData, false);
-    console.log("response", response);
     if (!response || response.status >= 400)
       throw new Error("Falha no upload de áudio.");
     const url = response?.body?.url || response?.body?.audioUrl;
@@ -103,63 +117,55 @@ export function AudioRecorder({
     return url;
   }
 
-  const handleSaveRecording = async (payload: {
-    name: string;
-    description: string;
-    clientId?: string;
-  }) => {
+  const handleSaveRecording = async () => {
+    if (payload.type === "CLIENT") {
+      if (!payload.clientId) {
+        toast.error("Selecione um paciente.");
+        return;
+      }
+    }
     setIsSubmitting(true);
 
-    try {
-      const uploadedUrl = await handleUploadAudio();
+    const uploadedUrl = await handleUploadAudio();
 
-      const recordingData: SaveRecordingData = {
-        name: payload.name?.trim() || "Anotações da sessão",
-        description: payload.description?.trim() || "Resumo em áudio.",
-        duration: formatDuration(duration),
-        seconds: duration,
-        audioUrl: uploadedUrl,
-        type,
-        ...(payload.clientId ? { clientId: payload.clientId } : {}),
-      };
+    const recordingData: SaveRecordingData = {
+      name: payload.name?.trim() || "Anotações da sessão",
+      description: payload.description?.trim() || "Resumo em áudio.",
+      duration: formatDuration(duration),
+      seconds: duration,
+      audioUrl: uploadedUrl,
+      type: payload.type,
+      ...(payload.clientId ? { clientId: payload.clientId } : {}),
+    };
 
-      console.log("recordingData", recordingData);
-
-      if (onSave) {
-        await onSave(recordingData);
-      } else {
-        const response = await PostAPI("/recording", recordingData, true);
-        console.log("response 2", response);
-        if (response.status !== 200) {
-          throw new Error("Não foi possível salvar o registro.");
-        }
-      }
-
-      alert("Gravação salva com sucesso!");
+    const response = await PostAPI("/recording", recordingData, true);
+    if (response.status === 200) {
+      GetClients();
+      GetRecordings();
+      GetReminders();
+      toast.success("Gravação salva com sucesso!");
       setShowSaveDialog(false);
       resetRecording();
-    } catch (error) {
-      console.error("Erro ao salvar gravação:", error);
-      alert("Erro ao salvar a gravação. Tente novamente.");
-    } finally {
-      setIsSubmitting(false);
+      return setIsSubmitting(false);
     }
+    toast.error("Erro ao salvar a gravação. Tente novamente.");
+    return setIsSubmitting(false);
   };
 
   return (
     <div
       className={cn(
         "fixed right-2 bottom-2 z-50 flex h-16 w-16 min-w-16 items-center justify-center",
-        isRecording && "transition-height duration-500 ease-in-out",
+        isRecording && "transition-height h-20 w-20 duration-500 ease-in-out",
       )}
     >
       <button
         onClick={handleToggleRecording}
         disabled={showSaveDialog}
-        className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 font-bold ${
+        className={`text-primary relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 font-bold transition ${
           showSaveDialog
             ? "cursor-not-allowed border-gray-300 bg-gray-200"
-            : "border-primary/20 bg-primary/10 hover:bg-primary/20"
+            : "border-[#B4D2F2] bg-[#DDE8F4] hover:bg-[#B4D2F2]"
         } `}
       >
         <div className="absolute left-0">
@@ -176,35 +182,173 @@ export function AudioRecorder({
       </button>
 
       {showSaveDialog && (
-        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20">
-          <div className="w-full max-w-lg rounded-t-2xl bg-white p-6">
+        <div
+          onClick={() => {
+            setShowSaveDialog(false);
+            resetRecording();
+          }}
+          className="bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20"
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+            className="w-full max-w-lg rounded-t-2xl bg-white p-6"
+          >
             <h2 className="mb-4 text-xl font-bold">Salvar Gravação</h2>
 
             <form
               onSubmit={(e) => {
+                e.stopPropagation();
                 e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                handleSaveRecording({
-                  name: formData.get("name") as string,
-                  description: formData.get("description") as string,
-                  clientId: userId || undefined,
-                });
+                handleSaveRecording();
               }}
             >
-              <input
-                name="name"
-                type="text"
-                placeholder="Nome da gravação"
-                defaultValue={derivedTitle}
-                className="mb-3 w-full rounded-lg border p-3"
-                required
-              />
+              <div className="flex flex-col">
+                <label className="text-neutral-600">Nome da Gravação</label>
+                <input
+                  name="name"
+                  type="text"
+                  placeholder="Nome da gravação"
+                  defaultValue={derivedTitle}
+                  className="mb-3 w-full rounded-lg border p-3"
+                  required
+                />
+              </div>
 
-              <textarea
-                name="description"
-                placeholder="Descrição (opcional)"
-                className="mb-4 h-24 w-full rounded-lg border p-3"
-              />
+              <div className="flex flex-col">
+                <label className="text-neutral-600">Tipo de Gravação</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="mb-3 flex w-full cursor-pointer items-center gap-2 rounded-lg border p-3">
+                      <input
+                        name="type"
+                        type="text"
+                        placeholder="Tipo"
+                        value={
+                          payload.type === "CLIENT"
+                            ? "Paciente"
+                            : payload.type === "REMINDER"
+                              ? "Lembrete"
+                              : payload.type === "STUDY"
+                                ? "Estudo"
+                                : payload.type === "OTHER"
+                                  ? "Outro"
+                                  : ""
+                        }
+                        className="w-full cursor-pointer"
+                        required
+                        readOnly
+                      />
+                      <ChevronDown className="w-5 min-w-5" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="z-[9999]">
+                    <DropdownMenuItem
+                      className={cn(
+                        "hover:bg-neutral-200",
+                        payload.type === "CLIENT" && "bg-neutral-200",
+                      )}
+                      onClick={() => setPayload({ ...payload, type: "CLIENT" })}
+                    >
+                      Paciente
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={cn(
+                        "hover:bg-neutral-200",
+                        payload.type === "REMINDER" && "bg-neutral-200",
+                      )}
+                      onClick={() =>
+                        setPayload({
+                          ...payload,
+                          type: "REMINDER",
+                          clientId: "",
+                        })
+                      }
+                    >
+                      Lembrete
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={cn(
+                        "hover:bg-neutral-200",
+                        payload.type === "STUDY" && "bg-neutral-200",
+                      )}
+                      onClick={() =>
+                        setPayload({ ...payload, type: "STUDY", clientId: "" })
+                      }
+                    >
+                      Estudo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={cn(
+                        "hover:bg-neutral-200",
+                        payload.type === "OTHER" && "bg-neutral-200",
+                      )}
+                      onClick={() =>
+                        setPayload({ ...payload, type: "OTHER", clientId: "" })
+                      }
+                    >
+                      Outro
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div
+                className={cn(
+                  "flex flex-col",
+                  payload.type !== "CLIENT" && "hidden",
+                )}
+              >
+                <label className="text-neutral-600">Paciente</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="mb-3 flex w-full cursor-pointer items-center gap-2 rounded-lg border p-3">
+                      <input
+                        name="clientId"
+                        type="text"
+                        placeholder="Paciente"
+                        value={
+                          payload.clientId
+                            ? clients.find((c) => c.id === payload.clientId)
+                                ?.name
+                            : "Selecione um Paciente"
+                        }
+                        className="w-full cursor-pointer"
+                        required
+                        readOnly
+                      />
+                      <ChevronDown className="w-5 min-w-5" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="z-[9999] h-80 overflow-y-scroll">
+                    {clients.map((c) => (
+                      <DropdownMenuItem
+                        key={c.id}
+                        className={cn(
+                          "hover:bg-neutral-200",
+                          payload.clientId === c.id && "bg-neutral-200",
+                        )}
+                        onClick={() =>
+                          setPayload({ ...payload, clientId: c.id })
+                        }
+                      >
+                        {c.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-neutral-600">Descrição</label>
+                <textarea
+                  name="description"
+                  placeholder="Descrição (opcional)"
+                  className="mb-4 h-24 w-full rounded-lg border p-3"
+                />
+              </div>
 
               <div className="flex gap-2">
                 <button
@@ -223,6 +367,7 @@ export function AudioRecorder({
                   type="submit"
                   className="flex-1 rounded-lg bg-blue-500 py-3 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
                   disabled={isSubmitting}
+                  onClick={handleSaveRecording}
                 >
                   {isSubmitting ? "Salvando..." : "Salvar"}
                 </button>

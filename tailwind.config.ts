@@ -14,6 +14,7 @@ const config = {
     extend: {
       transitionProperty: {
         height: "height",
+        width: "width",
       },
     },
   },
