@@ -8,7 +8,7 @@ import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,8 @@ export function Header() {
   const pathname = usePathname();
   const cookies = useCookies();
   const router = useRouter();
+
+  const [appUrl, setAppUrl] = useState<string>("");
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const breadcrumbs: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
@@ -105,6 +107,30 @@ export function Header() {
     </>
   );
 
+  function isIOSDevice(): boolean {
+    if (typeof window === "undefined") return false;
+
+    const userAgent = window.navigator.userAgent;
+
+    return (
+      /iPad|iPhone|iPod|Mac|Macintosh|MacIntel|MacPPC|Mac68K/.test(userAgent) &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      !(window as any).MSStream
+    );
+  }
+
+  useEffect(() => {
+    if (isIOSDevice()) {
+      setAppUrl("https://apps.apple.com/br/app/health-voice/id6754345791");
+    } else {
+      setAppUrl(
+        "https://play.google.com/store/apps/details?id=com.executivos.healthvoice",
+      );
+    }
+  }, []);
+
+  console.log("isIOSDevice()", isIOSDevice());
+
   return (
     <header className="bg-primary flex w-full flex-col gap-4 px-4 pb-20 text-white">
       <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between py-2">
@@ -130,6 +156,11 @@ export function Header() {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="border-none bg-white text-black">
+                <DropdownMenuItem
+                  onSelect={() => window.open(appUrl, "_blank")}
+                >
+                  Acessar Aplicativo
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     cookies.remove(

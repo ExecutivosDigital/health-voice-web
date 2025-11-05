@@ -1,10 +1,23 @@
 "use client";
+import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
+import { Bell, User } from "lucide-react";
+import { useCookies } from "next-client-cookies";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./blocks/dropdown-menu";
 
 export function Sidebar() {
   const { mobileMenu, setMobileMenu } = useSidebar();
+  const router = useRouter();
+  const cookies = useCookies();
+  const { clearSession } = useSession();
 
   return (
     <>
@@ -28,9 +41,17 @@ export function Sidebar() {
             </div>
           </div>
         </div>
-        <div className="sidebar-menu h-[calc(100%-80px)] overflow-y-scroll">
-          <div className="flex flex-col gap-4 p-4">
-            <button className="border-light text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold">
+        <div className="sidebar-menu flex h-[calc(100%-80px)] flex-col justify-between overflow-y-scroll p-4">
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={() =>
+                window.open(
+                  "https://play.google.com/store/apps/details?id=com.executivos.healthvoice",
+                  "_blank",
+                )
+              }
+              className="border-light text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold"
+            >
               <Image
                 src="/icons/google-login.png"
                 alt=""
@@ -40,7 +61,15 @@ export function Sidebar() {
               />
               Baixar Play Store
             </button>
-            <button className="border-primary bg-primary text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold">
+            <button
+              onClick={() =>
+                window.open(
+                  "https://apps.apple.com/br/app/health-voice/id6754345791",
+                  "_blank",
+                )
+              }
+              className="border-primary bg-primary text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold"
+            >
               <Image
                 src="/icons/apple-login.png"
                 alt=""
@@ -50,6 +79,31 @@ export function Sidebar() {
               />
               Baixar App Store
             </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 text-primary hover:bg-primary/20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-2 transition">
+              <Bell className="h-4" />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="bg-primary/10 text-primary hover:bg-primary/20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-2 transition">
+                  <User className="h-4" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="z-[9999] border-none bg-white text-black">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    cookies.remove(
+                      process.env.NEXT_PUBLIC_USER_TOKEN as string,
+                    );
+                    clearSession();
+                    router.push("/login");
+                  }}
+                >
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
