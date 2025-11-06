@@ -1,30 +1,38 @@
 "use client";
 
 export function Transcription() {
-  // const { selectedReminder } = useGeneralContext();
+  // const { selectedRecording } = useGeneralContext();
+
+  // const rows = useMemo(
+  //   () =>
+  //     buildRowsFromSpeeches(
+  //       selectedRecording?.speeches,
+  //       selectedRecording?.speakers,
+  //     ),
+  //   [selectedRecording?.speeches],
+  // );
 
   return (
     <div className="flex w-full flex-col gap-2">
-      {/* {selectedReminder?.speeches.length !== 0 ? (
-        selectedReminder?.speeches.map((speech, index) => (
+      {/* {selectedRecording?.speeches.length !== 0 ? (
+        rows.map((speech) => (
           <div
-            key={speech.transcription + index}
+            key={speech.id}
             className="flex w-full items-center justify-between gap-2 border-b border-b-gray-300 px-4 py-2"
           >
             <div className="flex gap-2">
-              <span className="text-sm text-gray-300">
-                {speech.startTime.toFixed(2)}
-              </span>
-              <span className="prose prose-sm max-w-none">
-                {speech.transcription}
-              </span>
+              <span className="text-sm text-gray-300">{speech.t}</span>
+              <span className="prose prose-sm max-w-none">{speech.text}</span>
             </div>
-            <span className="h-10 min-w-40">
-              {
-                selectedReminder.speakers.find(
-                  (s) => s.id === speech.speakerId,
-                )?.name
-              }
+            <span
+              className={cn(
+                "flex h-8 w-max min-w-40 items-center justify-center rounded-md border px-2 py-1 text-sm font-semibold",
+                speech.index === 0
+                  ? "bg-primary border-primary text-white"
+                  : "text-primary border-neutral-200 bg-white",
+              )}
+            >
+              {speech.name}
             </span>
           </div>
         ))

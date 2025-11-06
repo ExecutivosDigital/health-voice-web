@@ -3,7 +3,7 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, Play } from "lucide-react";
+import { ChevronDown, Pause, Play } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -12,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/blocks/dropdown-menu";
-import { AudioVisualizer } from "./audio-visualizer";
 import { useAudioRecorder } from "./use-audio-recorder";
 
 export type RecordingType = "CLIENT" | "REMINDER" | "STUDY" | "OTHER";
@@ -49,7 +48,6 @@ export function AudioRecorder({
     startRecording,
     stopRecording,
     resetRecording,
-    getVisualizerData,
   } = useAudioRecorder();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -152,31 +150,28 @@ export function AudioRecorder({
   };
 
   return (
-    <div
-      className={cn(
-        "fixed right-2 bottom-2 z-50 flex h-16 w-16 min-w-16 items-center justify-center",
-        isRecording && "transition-height h-20 w-20 duration-500 ease-in-out",
-      )}
-    >
+    <>
       <button
+        className="flex h-10 items-center gap-2 rounded-3xl bg-white/10 px-4 py-1 text-sm text-white transition hover:bg-white/20 md:text-base"
         onClick={handleToggleRecording}
         disabled={showSaveDialog}
-        className={`text-primary relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 font-bold transition ${
-          showSaveDialog
-            ? "cursor-not-allowed border-gray-300 bg-gray-200"
-            : "border-[#B4D2F2] bg-[#DDE8F4] hover:bg-[#B4D2F2]"
-        } `}
       >
-        <div className="absolute left-0">
+        {/* <div className="absolute left-0">
           <AudioVisualizer
             isRecording={isRecording && !isPaused}
             getVisualizerData={getVisualizerData}
           />
-        </div>
+        </div> */}
         {isRecording || isPaused || duration > 0 ? (
-          formatTime(duration)
+          <>
+            <Pause className="h-4" />
+            {formatTime(duration)}
+          </>
         ) : (
-          <Play />
+          <>
+            <Play className="h-4" />
+            <span>Iniciar gravação</span>
+          </>
         )}
       </button>
 
@@ -186,7 +181,7 @@ export function AudioRecorder({
             setShowSaveDialog(false);
             resetRecording();
           }}
-          className="bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20"
+          className="bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20 text-black"
         >
           <div
             onClick={(e) => {
@@ -375,6 +370,6 @@ export function AudioRecorder({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

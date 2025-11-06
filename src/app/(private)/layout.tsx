@@ -1,5 +1,4 @@
 "use client";
-import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
 import { AuthGuard } from "@/components/auth-guard";
 import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
@@ -28,7 +27,6 @@ export default function RootLayout({
           <Header />
           <Sidebar />
           <div className="z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 overflow-hidden rounded-3xl bg-white p-4">
-            <AudioRecorder />
             {children}
           </div>
         </div>

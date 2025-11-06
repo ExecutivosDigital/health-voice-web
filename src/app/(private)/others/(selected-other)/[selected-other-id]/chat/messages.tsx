@@ -20,10 +20,10 @@ export function Messages({
   const cleanedText = text.replace(/ {2,}/g, " ");
   return (
     <div className="">
-      {entity === "USER" ? (
+      {entity !== "USER" ? (
         <>
           <div className="group mb-4 ml-2 flex max-w-[calc(100%-8px)] flex-col items-start justify-start gap-1 space-x-2 lg:mb-2 xl:mb-4 xl:ml-[50px] xl:max-w-[calc(100%-50px)] rtl:space-x-reverse">
-            <div className="flex min-w-10 justify-center gap-1 rounded-2xl rounded-bl-none bg-neutral-200 p-2 text-black shadow-sm">
+            <div className="from-primary flex min-w-10 justify-center gap-1 rounded-2xl rounded-bl-none bg-gradient-to-br to-gray-800 p-2 text-white shadow-sm">
               <div className="flex items-center gap-1">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -56,7 +56,7 @@ export function Messages({
         </>
       ) : (
         <div className="group mb-4 flex max-w-[calc(100%-8px)] flex-col items-end justify-end gap-1 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)]">
-          <div className="bg-primary flex min-w-10 justify-center gap-1 rounded-2xl rounded-br-none p-2 text-white shadow-sm">
+          <div className="from-primary flex min-w-10 justify-center gap-1 rounded-2xl rounded-br-none bg-gradient-to-b to-gray-800 p-2 text-white shadow-sm">
             <div className="group flex items-center gap-1">
               <div className="relative z-[1] break-normal whitespace-pre-wrap">
                 <ReactMarkdown

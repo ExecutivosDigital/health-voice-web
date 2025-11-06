@@ -7,7 +7,7 @@ import {
 import { cn } from "@/utils/cn";
 import { Search, Settings } from "lucide-react";
 
-export function GeneralRemindersTableHeader() {
+export function GeneralOthersTableHeader() {
   return (
     <div className="flex w-full items-center justify-between gap-2">
       <label

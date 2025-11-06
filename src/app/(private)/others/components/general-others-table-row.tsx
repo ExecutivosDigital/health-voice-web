@@ -17,7 +17,7 @@ interface Props {
   recording: RecordingDetailsProps;
 }
 
-export function GeneralStudiesTableItem({ recording }: Props) {
+export function GeneralOthersTableItem({ recording }: Props) {
   const { setSelectedRecording } = useGeneralContext();
   const router = useRouter();
   const [selectedTooltip, setSelectedTooltip] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function GeneralStudiesTableItem({ recording }: Props) {
           <button
             onClick={() => {
               setSelectedRecording(recording);
-              router.push(`/studies/${recording.id}`);
+              router.push(`/others/${recording.id}`);
             }}
             className="bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md"
           >

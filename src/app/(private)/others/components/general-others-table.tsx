@@ -10,16 +10,16 @@ import {
 } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GeneralRecordingsTableHeader } from "./general-recording-table-header";
-import { GeneralRecordingTableItem } from "./general-recording-table-row";
+import { GeneralOthersTableHeader } from "./general-others-table-header";
+import { GeneralOthersTableItem } from "./general-others-table-row";
 
-type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | "TYPE" | null;
+type SortableColumn = "NAME" | "CREATED_AT" | "DESCRIPTION" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
-export function GeneralRecordingsTable() {
+export function GeneralOthersTable() {
   const {
     recordings,
     isGettingRecordings,
@@ -34,8 +34,7 @@ export function GeneralRecordingsTable() {
   const GeneralRecordingsColumns = [
     { key: "NAME", label: "Título da Gravação", sortable: true },
     { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
-    { key: "DURATION", label: "Tempo de Gravação", sortable: true },
-    { key: "TYPE", label: "Tipo de Gravação", sortable: true },
+    { key: "DESCRIPTION", label: "Descrição", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
@@ -74,29 +73,29 @@ export function GeneralRecordingsTable() {
 
   const getSortIcon = (column: SortableColumn) => {
     if (sortColumn !== column)
-      return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
+      return <ChevronUp className="h-4 w-4 text-gray-300" />;
     if (sortDirection === "ASC")
-      return <ArrowUp className="h-4 w-4 text-gray-600" />;
+      return <ChevronUp className="h-4 w-4 text-gray-600" />;
     if (sortDirection === "DESC")
-      return <ArrowDown className="h-4 w-4 text-gray-600" />;
-    return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
+      return <ChevronDown className="h-4 w-4 text-gray-600" />;
+    return <ChevronUp className="h-4 w-4 text-gray-300" />;
   };
 
   useEffect(() => {
     setRecordingsFilters((prev) => ({
       ...prev,
       clientId: undefined,
-      type: undefined,
+      type: "OTHER",
       page: 1,
     }));
   }, []);
 
   return (
     <>
-      <GeneralRecordingsTableHeader />
+      <GeneralOthersTableHeader />
       <Table wrapperClass="h-full rounded-t-3xl">
         <TableHeader>
-          <TableRow className="gap-1 bg-gray-200">
+          <TableRow className="gap-1 bg-neutral-200">
             {GeneralRecordingsColumns.map((column) => (
               <TableHead
                 key={column.key}
@@ -135,7 +134,7 @@ export function GeneralRecordingsTable() {
               ))
             : !isGettingRecordings && recordings.length !== 0
               ? recordings.map((row) => (
-                  <GeneralRecordingTableItem key={row.id} recording={row} />
+                  <GeneralOthersTableItem key={row.id} recording={row} />
                 ))
               : !isGettingRecordings &&
                 recordings.length === 0 && (
@@ -145,7 +144,7 @@ export function GeneralRecordingsTable() {
                       className="h-24"
                     >
                       <div className="flex w-full items-center justify-center">
-                        Nenhuma Gravação encontrada.
+                        Nenhum Estudo encontrado.
                       </div>
                     </TableCell>
                   </TableRow>
@@ -156,7 +155,7 @@ export function GeneralRecordingsTable() {
         <div className="border-t border-t-zinc-200 p-2">
           <CustomPagination
             currentPage={recordingsFilters.page}
-            setCurrentPage={(page) =>
+            setCurrentPage={(page: number) =>
               setRecordingsFilters((prev) => ({ ...prev, page }))
             }
             pages={recordingsTotalPages}

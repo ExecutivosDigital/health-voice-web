@@ -1,5 +1,11 @@
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/blocks/dropdown-menu";
 import { cn } from "@/utils/cn";
-import { Search, Upload } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 
 export function GeneralRecordingsTableHeader() {
   return (
@@ -17,15 +23,24 @@ export function GeneralRecordingsTableHeader() {
           className="peer h-full w-full rounded-3xl px-8 text-neutral-700 outline-none placeholder:text-neutral-300"
         />
       </label>
-      <button
-        className={cn(
-          "flex h-8 items-center gap-2 rounded-3xl border border-neutral-300 px-4 text-neutral-500",
-          "cursor-auto opacity-50",
-        )}
-      >
-        <Upload className="h-4" />
-        <span className="font-semibold">Exportar</span>
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={cn(
+              "flex h-8 items-center gap-2 rounded-3xl border border-neutral-300 px-4 text-neutral-500",
+              "cursor-auto opacity-50",
+            )}
+          >
+            <Settings className="h-4" />
+            <span className="font-semibold">Filtros</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Filtro 1</DropdownMenuItem>
+          <DropdownMenuItem>Filtro 2</DropdownMenuItem>
+          <DropdownMenuItem>Filtro 3</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

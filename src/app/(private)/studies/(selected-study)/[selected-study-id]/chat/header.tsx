@@ -6,7 +6,7 @@ export function ChatHeader() {
   return (
     <>
       <header className="sticky top-0 z-20 flex w-full flex-col justify-between backdrop-blur-sm xl:flex-row xl:items-center">
-        <span className="w-full text-center text-3xl font-extrabold text-gray-900 xl:w-max xl:text-start">
+        <span className="text-primary w-full text-center text-3xl font-extrabold">
           Converse com a Inteligência Artificial
         </span>
         {/* <DropdownMenu>
