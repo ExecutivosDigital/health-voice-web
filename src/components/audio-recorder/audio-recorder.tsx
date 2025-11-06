@@ -90,7 +90,6 @@ export function AudioRecorder({
   };
 
   const handleToggleRecording = async () => {
-    console.log("entrou");
     try {
       if (isRecording || isPaused || duration > 0) {
         stopRecording();

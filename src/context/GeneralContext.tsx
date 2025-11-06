@@ -140,7 +140,9 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
     setIsGettingRecordings(true);
     try {
       const queryString = buildQueryString(recordingsFilters);
+      console.log("QueryString:", queryString);
       const response = await GetAPI(`/recording?${queryString}`, true);
+      console.log("Response:", response);
       if (response.status === 200) {
         setRecordings(response.body.recordings || []);
         setRecordingsTotalPages(response.body.pages || 0);

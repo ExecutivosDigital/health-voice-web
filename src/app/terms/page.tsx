@@ -19,26 +19,31 @@ export default function Terms() {
         />
       </div>
       <span className="mx-auto w-max text-lg font-bold">
-        Termos de Uso - Health Voice
+        Termos de Uso - {process.env.PROJECT_VOICE || "Health Voice"}
       </span>
       <span>
         Estes Termos de Uso ({"'"}Termos{"'"}) regem o acesso e a utilização do
-        aplicativo {"'"}Health Voice{"'"} ({"'"}Aplicativo{"'"}), desenvolvido
-        pela Executivo{"'"}s Digital, disponível para dispositivos móveis. Ao
-        acessar, instalar, utilizar ou se cadastrar no Aplicativo, o usuário (
-        {"'"}Usuário{"'"}) DECLARA TER LIDO, ENTENDIDO E CONCORDADO COM ESTES
-        TERMOS DE USO. Caso não concorde com qualquer disposição destes Termos,
-        o Usuário não deverá utilizar o Aplicativo.
+        aplicativo {"'"}
+        {process.env.PROJECT_VOICE || "Health Voice"}
+        {"'"} ({"'"}Aplicativo{"'"}), desenvolvido pela Executivo{"'"}s Digital,
+        disponível para dispositivos móveis. Ao acessar, instalar, utilizar ou
+        se cadastrar no Aplicativo, o usuário ({"'"}Usuário{"'"}) DECLARA TER
+        LIDO, ENTENDIDO E CONCORDADO COM ESTES TERMOS DE USO. Caso não concorde
+        com qualquer disposição destes Termos, o Usuário não deverá utilizar o
+        Aplicativo.
       </span>
-      <span className="font-semibold">1. SOBRE O HEALTH VOICE</span>
+      <span className="font-semibold">
+        1. SOBRE O {process.env.PROJECT_VOICE || "HEALTH VOICE"}
+      </span>
       <span>
-        1.1. O Health Voice é um aplicativo desenvolvido para auxiliar médicos e
-        outros profissionais da área de saúde na gravação, transcrição e gestão
-        de informações provenientes de consultas, reuniões e interações
-        profissionais. Sua principal funcionalidade é a gravação de áudios com
-        identificação dos interlocutores (limitado a 2 pessoas para a IA
-        proprietária, conforme o plano contratado), transcrição automática do
-        conteúdo falado e organização dessas informações.
+        1.1. O {process.env.PROJECT_VOICE || "Health Voice"} é um aplicativo
+        desenvolvido para auxiliar médicos e outros profissionais da área de
+        saúde na gravação, transcrição e gestão de informações provenientes de
+        consultas, reuniões e interações profissionais. Sua principal
+        funcionalidade é a gravação de áudios com identificação dos
+        interlocutores (limitado a 2 pessoas para a IA proprietária, conforme o
+        plano contratado), transcrição automática do conteúdo falado e
+        organização dessas informações.
       </span>
       <span>
         1.2. Além das funcionalidades de gravação e transcrição, o Aplicativo
@@ -53,10 +58,11 @@ export default function Terms() {
         definidos.
       </span>
       <span>
-        1.3. O Health Voice é uma ferramenta de apoio administrativo, visando
-        otimizar a organização e a gestão da informação, não substituindo, em
-        hipótese alguma, o prontuário médico ou qualquer outro registro oficial,
-        nem o discernimento profissional do Usuário.
+        1.3. O {process.env.PROJECT_VOICE || "Health Voice"} é uma ferramenta de
+        apoio administrativo, visando otimizar a organização e a gestão da
+        informação, não substituindo, em hipótese alguma, o prontuário médico ou
+        qualquer outro registro oficial, nem o discernimento profissional do
+        Usuário.
       </span>
       <span className="font-semibold">2. CADASTRO E ACESSO AO APLICATIVO</span>
       <span>
@@ -75,9 +81,9 @@ export default function Terms() {
       </span>
       <span className="font-semibold">3. PLANOS DE SERVIÇO E COBRANÇA</span>
       <span>
-        3.1. O Health Voice oferece diferentes planos de serviço, que podem
-        incluir funcionalidades e limites de uso distintos. Os planos atualmente
-        disponíveis são:
+        3.1. O {process.env.PROJECT_VOICE || "Health Voice"} oferece diferentes
+        planos de serviço, que podem incluir funcionalidades e limites de uso
+        distintos. Os planos atualmente disponíveis são:
       </span>
       <span>
         3.2. As condições específicas de cada plano, incluindo preços, período
@@ -103,10 +109,11 @@ export default function Terms() {
         4. USO ADEQUADO DO APLICATIVO E RESPONSABILIDADES DO USUÁRIO
       </span>
       <span>
-        4.1. O Usuário compromete-se a utilizar o Health Voice de forma ética e
-        em conformidade com a legislação brasileira, especialmente a Lei Geral
-        de Proteção de Dados Pessoais (LGPD), o Código de Ética Médica e
-        quaisquer outras normas aplicáveis à sua profissão.
+        4.1. O Usuário compromete-se a utilizar o{" "}
+        {process.env.PROJECT_VOICE || "Health Voice"} de forma ética e em
+        conformidade com a legislação brasileira, especialmente a Lei Geral de
+        Proteção de Dados Pessoais (LGPD), o Código de Ética Médica e quaisquer
+        outras normas aplicáveis à sua profissão.
       </span>
       <span>
         4.2. Responsabilidade pela Obtenção de Consentimento: O Usuário é o
@@ -144,9 +151,10 @@ export default function Terms() {
       <span className="font-semibold">5. PROPRIEDADE INTELECTUAL</span>
       <span>
         5.1. Todos os direitos de propriedade intelectual relativos ao
-        Aplicativo Health Voice, incluindo, mas não se limitando a, software,
-        código-fonte, design, logotipos, marcas, imagens e textos, são de
-        propriedade exclusiva da Executivo{"'"}s Digital.
+        Aplicativo {process.env.PROJECT_VOICE || "Health Voice"}, incluindo, mas
+        não se limitando a, software, código-fonte, design, logotipos, marcas,
+        imagens e textos, são de propriedade exclusiva da Executivo{"'"}s
+        Digital.
       </span>
       <span>
         5.2. Estes Termos concedem ao Usuário uma licença limitada, não
@@ -171,12 +179,13 @@ export default function Terms() {
       <span>
         6.2. NÃO HÁ ARMAZENAMENTO OU USO PARA TREINAMENTO: A Executivo{"'"}s
         Digital ESCLARECE E GARANTE que os dados de áudio e as transcrições
-        geradas pelo Usuário DENTRO DO APLICATIVO HEALTH VOICE NÃO SÃO SALVOS em
-        seus servidores para fins de treinamento da IA, comercialização ou
-        qualquer outra finalidade que não seja o uso exclusivo do próprio
-        Usuário, dentro do ambiente do aplicativo. O processamento dos dados
-        para transcrição ocorre de forma segura e efêutica, sem retenção
-        permanente pela Executivo{"'"}s Digital.
+        geradas pelo Usuário DENTRO DO APLICATIVO{" "}
+        {process.env.PROJECT_VOICE || "HEALTH VOICE"} NÃO SÃO SALVOS em seus
+        servidores para fins de treinamento da IA, comercialização ou qualquer
+        outra finalidade que não seja o uso exclusivo do próprio Usuário, dentro
+        do ambiente do aplicativo. O processamento dos dados para transcrição
+        ocorre de forma segura e efêutica, sem retenção permanente pela
+        Executivo{"'"}s Digital.
       </span>
       <span>
         6.3. As informações pessoais coletadas no cadastro do Usuário (nome,
@@ -199,11 +208,12 @@ export default function Terms() {
       </span>
       <span className="font-semibold">7. LIMITAÇÃO DE RESPONSABILIDADE</span>
       <span>
-        7.1. O Health Voice é fornecido {"'"}no estado em que se encontra{"'"} e
-        {"'"}conforme disponível{"'"}. A Executivo{"'"}s Digital não oferece
-        garantias de qualquer tipo, expressas ou implícitas, sobre a adequação,
-        confiabilidade, disponibilidade, atualidade, precisão ou ausência de
-        erros do Aplicativo ou de seus conteúdos.
+        7.1. O {process.env.PROJECT_VOICE || "Health Voice"} é fornecido {"'"}no
+        estado em que se encontra{"'"} e{"'"}conforme disponível{"'"}. A
+        Executivo{"'"}s Digital não oferece garantias de qualquer tipo,
+        expressas ou implícitas, sobre a adequação, confiabilidade,
+        disponibilidade, atualidade, precisão ou ausência de erros do Aplicativo
+        ou de seus conteúdos.
       </span>
       <span>
         7.2. A Executivo{"'"}s Digital não será responsável por quaisquer perdas

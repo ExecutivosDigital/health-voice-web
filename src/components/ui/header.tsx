@@ -23,7 +23,8 @@ interface BreadcrumbItem {
 }
 
 export function Header() {
-  const { selectedClient, selectedRecording } = useGeneralContext();
+  const { selectedClient, selectedRecording, selectedReminder } =
+    useGeneralContext();
   const { mobileMenu, setMobileMenu } = useSidebar();
   const { clearSession, profile } = useSession();
   const pathname = usePathname();
@@ -64,17 +65,41 @@ export function Header() {
         }
       }
     } else if (pathname.includes("/reminders")) {
+      const pathSegments = pathname.split("/").filter(Boolean);
+
       breadcrumbs.push({
         label: "Lembretes",
         href: "/reminders",
-        isActive: true,
+        isActive: pathname === "/reminders",
       });
+
+      if (pathSegments.length >= 2 && pathSegments[1]) {
+        const reminderId = pathSegments[1];
+
+        breadcrumbs.push({
+          label: selectedReminder?.name || "Carregando...",
+          href: `/${reminderId}`,
+          isActive: pathname === `/reminders/${reminderId}`,
+        });
+      }
     } else if (pathname.includes("/studies")) {
+      const pathSegments = pathname.split("/").filter(Boolean);
+
       breadcrumbs.push({
         label: "Estudos",
         href: "/studies",
-        isActive: true,
+        isActive: pathname === "/studies",
       });
+
+      if (pathSegments.length >= 2 && pathSegments[1]) {
+        const studyId = pathSegments[1];
+
+        breadcrumbs.push({
+          label: selectedRecording?.name || "Carregando...",
+          href: `/${studyId}`,
+          isActive: pathname === `/studies/${studyId}`,
+        });
+      }
     }
 
     return breadcrumbs;
@@ -128,8 +153,6 @@ export function Header() {
       );
     }
   }, []);
-
-  console.log("isIOSDevice()", isIOSDevice());
 
   return (
     <header className="bg-primary flex w-full flex-col gap-4 px-4 pb-20 text-white">
@@ -201,7 +224,8 @@ export function Header() {
         </div>
 
         <div className="flex w-full items-center justify-between overflow-x-scroll pb-4 md:overflow-x-hidden">
-          {pathname.split("/").filter(Boolean).length >= 3 ? (
+          {pathname.includes("/clients") &&
+          pathname.split("/").filter(Boolean).length >= 3 ? (
             <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -271,6 +295,172 @@ export function Header() {
                   />
                   <span>{selectedClient?.name}</span>
                 </div>
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/calendar.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
+                  <span>
+                    {moment(selectedRecording?.createdAt).format(
+                      "DD/MM/YYYY - HH:mm",
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/clock.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
+                  <span>{selectedRecording?.duration}</span>
+                </div>
+              </div>
+            </div>
+          ) : pathname.includes("/reminders") &&
+            pathname.split("/").filter(Boolean).length >= 2 ? (
+            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => router.push("/reminders")}
+                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="font-semibold">Voltar</span>
+                </button>
+                <div className="flex h-8 items-center">
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      !pathname.includes("/chat") &&
+                        !pathname.includes("/transcription")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(`/reminders/${selectedReminder?.id}`)
+                    }
+                  >
+                    Visão Geral
+                  </span>
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/chat")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(`/reminders/${selectedReminder?.id}/chat`)
+                    }
+                  >
+                    Conversar
+                  </span>
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/transcription")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/reminders/${selectedReminder?.id}/transcription`,
+                      )
+                    }
+                  >
+                    Transcrição
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-white/50">
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/calendar.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
+                  <span>
+                    {moment(selectedRecording?.createdAt).format(
+                      "DD/MM/YYYY - HH:mm",
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Image
+                    src="/icons/clock.svg"
+                    alt=""
+                    width={100}
+                    height={100}
+                    className="h-4 w-max fill-white object-contain text-white"
+                  />
+                  <span>{selectedRecording?.duration}</span>
+                </div>
+              </div>
+            </div>
+          ) : pathname.includes("/studies") &&
+            pathname.split("/").filter(Boolean).length >= 2 ? (
+            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => router.push("/studies")}
+                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="font-semibold">Voltar</span>
+                </button>
+                <div className="flex h-8 items-center">
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      !pathname.includes("/chat") &&
+                        !pathname.includes("/transcription")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(`/studies/${selectedReminder?.id}`)
+                    }
+                  >
+                    Visão Geral
+                  </span>
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/chat")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(`/studies/${selectedReminder?.id}/chat`)
+                    }
+                  >
+                    Conversar
+                  </span>
+                  <span
+                    className={cn(
+                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/transcription")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/studies/${selectedReminder?.id}/transcription`,
+                      )
+                    }
+                  >
+                    Transcrição
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-white/50">
                 <div className="flex items-center gap-1">
                   <Image
                     src="/icons/calendar.svg"
