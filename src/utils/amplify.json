@@ -1,10 +1,10 @@
 {
   "aws_project_region": "us-east-1",
   "aws_cognito_region": "us-east-1",
-  "aws_user_pools_id": "us-east-1_b58Jb8NIz",
-  "aws_user_pools_web_client_id": "vh0gtloq6eespjbtlfv16remq",
+  "aws_user_pools_id": "us-east-1_BMbuqck1w",
+  "aws_user_pools_web_client_id": "50auv2ua1lleuabhb2ske7b8vl",
   "oauth": {
-    "domain": "us-east-1b58jb8niz.auth.us-east-1.amazoncognito.com",
+    "domain": "us-east-1bmbuqck1w.auth.us-east-1.amazoncognito.com",
     "scope": ["email", "openid"],
     "redirectSignIn": "http://localhost:3000",
     "redirectSignOut": "http://localhost:3000",
