@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { cn } from "@/utils/cn";
-import { generalPrompt, screenPrompts } from "@/utils/prompts";
+import { generalPrompt } from "@/utils/prompts";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Maximize2,
@@ -45,12 +45,7 @@ export default function ChatWidget() {
   } = useSectionChat({ selectedPrompt });
 
   useEffect(() => {
-    const prompt = screenPrompts.find((p) => p.screen === pathName);
-    if (prompt) {
-      setSelectedPrompt(prompt);
-    } else {
-      setSelectedPrompt(generalPrompt);
-    }
+    setSelectedPrompt(generalPrompt);
   }, [pathName]);
 
   // Auto foco ao abrir
