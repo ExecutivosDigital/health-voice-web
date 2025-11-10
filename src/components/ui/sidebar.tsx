@@ -23,9 +23,9 @@ export function Sidebar() {
     <>
       <div
         className={cn(
-          "fixed top-0 left-0 z-[9999] h-screen w-[248px] -translate-x-full border-r border-r-stone-700 transition duration-300 ease-in xl:w-[calc(100%-450px)]",
+          "fixed top-0 left-0 z-[9999] h-screen w-[248px] -translate-x-full border-r border-r-neutral-300 transition duration-300 ease-in xl:w-[calc(100%-450px)]",
           !mobileMenu && "transparent pointer-events-none",
-          mobileMenu && "translate-x-0 bg-neutral-200 backdrop-blur",
+          mobileMenu && "bg-primary translate-x-0 backdrop-blur",
         )}
       >
         <div className="px-4 py-4">
@@ -50,7 +50,7 @@ export function Sidebar() {
                   "_blank",
                 )
               }
-              className="border-light text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold"
+              className="border-light text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold text-white"
             >
               <Image
                 src="/icons/google-login.png"
@@ -68,7 +68,7 @@ export function Sidebar() {
                   "_blank",
                 )
               }
-              className="border-primary bg-primary text-light flex h-10 items-center gap-2 rounded-3xl border px-4 font-semibold"
+              className="text-light flex h-10 items-center gap-2 rounded-3xl border border-white px-4 font-semibold text-white"
             >
               <Image
                 src="/icons/apple-login.png"

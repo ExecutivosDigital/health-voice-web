@@ -111,7 +111,7 @@ export function GeneralRecordingsTable() {
                 <div
                   className={cn(
                     "flex w-max items-center gap-2",
-                    column.key === "ACTIONS" && "justify-end",
+                    column.key === "ACTIONS" && "w-full justify-end",
                   )}
                 >
                   {column.label}

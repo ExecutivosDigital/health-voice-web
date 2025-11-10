@@ -19,6 +19,19 @@ export interface ReminderProps {
   time: string;
   userId: string;
   notificationSended: boolean;
+  recording: {
+    audioUrl: string;
+    createdAt: string;
+    description: string;
+    duration: string;
+    id: string;
+    name: string;
+    reminderId: string;
+    summary: string | null;
+    transcription: string;
+    type: string;
+    userId: string;
+  };
 }
 
 // Tipos para Gravações

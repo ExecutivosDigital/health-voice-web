@@ -1,5 +1,9 @@
 "use client";
-import { ClientProps, RecordingDetailsProps } from "@/@types/general-client";
+import {
+  ClientProps,
+  RecordingDetailsProps,
+  ReminderProps,
+} from "@/@types/general-client";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -17,6 +21,8 @@ export function GeneralRecordingTableItem({ recording }: Props) {
     setSelectedClient,
     recordingsFilters,
     setRecordingsFilters,
+    setSelectedReminder,
+    setRemindersFilters,
   } = useGeneralContext();
   const router = useRouter();
 
@@ -73,12 +79,19 @@ export function GeneralRecordingTableItem({ recording }: Props) {
                   type: "OTHER",
                 });
                 router.push(`/others/${recording.id}`);
+              } else if (recording.type === "REMINDER") {
+                setSelectedReminder(recording as unknown as ReminderProps);
+                setRemindersFilters({
+                  ...recordingsFilters,
+                  page: 1,
+                });
+                router.push(`/reminders/${recording.id}`);
               }
             }}
             className={cn(
               "bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md",
-              recording.type === "REMINDER" &&
-                "cursor-not-allowed opacity-50 hover:shadow-none",
+              // recording.type === "REMINDER" &&
+              //   "cursor-not-allowed opacity-50 hover:shadow-none",
             )}
           >
             <span>Acessar</span>

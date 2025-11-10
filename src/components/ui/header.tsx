@@ -3,13 +3,14 @@ import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { Bell, Calendar, ChevronLeft, Menu, User } from "lucide-react";
+import { Bell, CalendarIcon, ChevronLeft, Menu, User } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
+import { Calendar } from "./blocks/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -379,21 +380,6 @@ export function Header() {
                   >
                     Conversar
                   </span>
-                  <span
-                    className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/reminders/${selectedReminder?.id}/transcription`,
-                      )
-                    }
-                  >
-                    Transcrição
-                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-white/50">
@@ -650,11 +636,17 @@ export function Header() {
               </div>
               <div className="hidden items-center gap-2 md:flex">
                 <AudioRecorder />
-
-                <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
-                  <Calendar className="h-4" />
-                  <span>Outubro</span>
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
+                      <CalendarIcon className="h-4" />
+                      <span>Outubro</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <Calendar mode="single" selected={new Date()} />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )}
@@ -662,10 +654,17 @@ export function Header() {
         <div className="flex items-center justify-between gap-1 md:hidden">
           <AudioRecorder />
 
-          <button className="flex h-10 items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 text-sm transition hover:bg-white/20">
-            <Calendar className="h-4" />
-            <span>Outubro</span>
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
+                <CalendarIcon className="h-4" />
+                <span>Outubro</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <Calendar mode="single" selected={new Date()} />
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

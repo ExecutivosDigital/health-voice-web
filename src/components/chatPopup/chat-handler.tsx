@@ -331,6 +331,7 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
 
   return {
     messages,
+    setMessages,
     inputMessage,
     setInputMessage,
     file,

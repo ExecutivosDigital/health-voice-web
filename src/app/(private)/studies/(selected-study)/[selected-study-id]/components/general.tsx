@@ -14,7 +14,7 @@ export function General() {
           {selectedRecording?.transcription}
         </ReactMarkdown>
       ) : (
-        <h1 className="m-auto w-full text-center md:w-max">
+        <h1 className="text-primary m-auto w-full text-center md:w-max">
           Transcrição não disponível
         </h1>
       )}

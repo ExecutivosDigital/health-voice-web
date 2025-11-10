@@ -7,7 +7,7 @@ export interface FileData {
 }
 
 export interface Message {
-  role: "user" | "ai";
+  role: "user" | "ai" | "system";
   content: string;
   type?: string;
   file?: string;

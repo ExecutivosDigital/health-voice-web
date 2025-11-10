@@ -18,7 +18,7 @@ audio::-webkit-media-controls-enclosure {
 
 /* Panel styling (Chrome/Safari/Edge) */
 audio::-webkit-media-controls-panel {
-  background: #cb0c9f;
+  background: #0d78ec;
   border-radius: 12px;
   padding: 0 6px;
   height: 100%;
@@ -45,7 +45,7 @@ audio::-webkit-media-controls-pause-button:hover {
 
 /* Firefox (limited styling support) */
 audio::-moz-media-controls {
-  background: #cb0c9f;
+  background: #0d78ec;
   border-radius: 12px;
 }
 

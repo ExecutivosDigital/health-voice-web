@@ -14,7 +14,7 @@ export default function ChatLayout({
 
   useEffect(() => {
     if (!selectedReminder) {
-      router.push("/reminder");
+      router.push("/reminders");
     }
   }, [selectedReminder]);
 
