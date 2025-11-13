@@ -6,8 +6,8 @@
   "oauth": {
     "domain": "us-east-1bmbuqck1w.auth.us-east-1.amazoncognito.com",
     "scope": ["email", "openid"],
-    "redirectSignIn": "http://localhost:3000",
-    "redirectSignOut": "http://localhost:3000",
+    "redirectSignIn": "https://app.healthvoice.com.br",
+    "redirectSignOut": "https://app.healthvoice.com.br",
     "responseType": "code"
   },
   "federationTarget": "COGNITO_USER_POOLS",
