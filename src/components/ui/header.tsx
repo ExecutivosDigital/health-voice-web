@@ -653,6 +653,7 @@ export function Header() {
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
           <AudioRecorder />
+          {/* <AudioRecorder /> */}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

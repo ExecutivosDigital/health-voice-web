@@ -1,10 +1,23 @@
-"use client";
-
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, Pause, Play } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Lightbulb,
+  Mic,
+  Pause,
+  Pen,
+  RefreshCw,
+  Send,
+  TriangleAlert,
+  Video,
+  Volume2,
+  X,
+} from "lucide-react";
+import moment from "moment";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   DropdownMenu,
@@ -12,369 +25,916 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/blocks/dropdown-menu";
-import { useAudioRecorder } from "./use-audio-recorder";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/blocks/tooltip";
+import { useMediaRecorder } from "./use-media-recorder";
+import { useRecordingFlow } from "./use-recording-flow";
+import { useRecordingUpload } from "./use-recording-upload";
 
-export type RecordingType = "CLIENT" | "REMINDER" | "STUDY" | "OTHER";
+// Função para derivar o tipo de mídia
+const getMediaTypeFromMetadata = (metadata: {
+  recordingType: string;
+  consultationType: string | null;
+}): "audio" | "video" => {
+  return metadata.recordingType === "CLIENT" &&
+    metadata.consultationType === "ONLINE"
+    ? "video"
+    : "audio";
+};
 
-interface AudioRecorderProps {
-  title?: string;
-  userName?: string;
-  userId?: string;
-}
-
-interface SaveRecordingData {
-  name: string;
-  description: string;
-  duration: string;
-  seconds: number;
-  audioUrl: string;
-  type: RecordingType;
-  clientId?: string;
-}
-
-export function AudioRecorder({
-  title = "",
-  userName = "",
-  userId = "",
-}: AudioRecorderProps) {
+export function AudioRecorder() {
+  const { GetRecordings, GetReminders, clients } = useGeneralContext();
   const { PostAPI } = useApiContext();
-  const { GetClients, GetRecordings, GetReminders, clients } =
-    useGeneralContext();
-  const {
-    isRecording,
-    isPaused,
-    duration,
-    audioBlob,
-    startRecording,
-    stopRecording,
-    resetRecording,
-  } = useAudioRecorder();
+  const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [payload, setPayload] = useState<SaveRecordingData>({
-    name: "",
-    description: "",
-    duration: "",
-    seconds: 0,
-    audioUrl: "",
-    type: "CLIENT",
-    clientId: userId,
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  const audioPreviewRef = useRef<HTMLAudioElement>(null);
+
+  // 1. Declarar o recorder (passando uma função vazia ou null no onReset)
+  // Como useMediaRecorder não depende de nada do useRecordingFlow,
+  // podemos declará-lo antes, usando um valor de placeholder para o mediaType inicial.
+  // NO ENTANTO, para manter a lógica de mediaType derivado, vamos usar o padrão de useRef para onReset.
+
+  // --- Ajuste para resolver o Block-scoped variable error ---
+  // A função resetFlow (dentro de useRecordingFlow) PRECISA da função resetRecording (dentro de recorder).
+  // 1. Declaramos uma função de reset de placeholder.
+  // 2. Passamos o placeholder para useRecordingFlow.
+  // 3. Declaramos o recorder.
+  // 4. Atualizamos o placeholder para a função real do recorder.
+
+  const resetRecorderRef = useRef(() => {}); // Placeholder para recorder.resetRecording
+
+  const {
+    currentStep,
+    setCurrentStep,
+    metadata,
+    updateMetadata,
+    error,
+    setError,
+    validateForm,
+    resetFlow,
+    openSaveDialog,
+  } = useRecordingFlow(resetRecorderRef.current); // ← Passando o placeholder
+
+  // NOVO: Derivando o tipo de mídia, agora que 'metadata' está disponível
+  const currentMediaType = getMediaTypeFromMetadata(metadata);
+
+  const recorder = useMediaRecorder({
+    mediaType: currentMediaType, // ← USANDO O TIPO DERIVADO
+    onComplete: undefined,
+    onError: (error) => {
+      setError(error.message);
+      setCurrentStep("idle");
+    },
   });
 
-  const derivedTitle = (() => {
-    const labelByType: Record<RecordingType, string> = {
-      CLIENT: "Gravação do Paciente",
-      REMINDER: "Lembrete",
-      STUDY: "Estudo",
-      OTHER: "Gravação",
-    };
-    const base = title || labelByType[payload.type];
-    if (userName) return `${base} ${userName}`;
-    return base;
-  })();
+  // O Efeito colateral: Atualizar a referência com a função real do recorder
+  // para que resetFlow use a função correta. Isso é seguro porque recorder é
+  // estável (useMediaRecorder retorna um objeto estável com useCallback dentro).
+  useEffect(() => {
+    resetRecorderRef.current = recorder.resetRecording;
+  }, [recorder.resetRecording]);
+  // -------------------------------------------------------------
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  // MODIFICADO: Recebe o finalMediaType como parâmetro
+  const handleRecordingComplete = async (
+    blob: Blob,
+    duration: number,
+    finalMediaType: "audio" | "video",
+  ) => {
+    try {
+      setCurrentStep("processing");
+
+      const uploadedUrl = await uploadMedia(blob, finalMediaType); // Usa finalMediaType
+
+      const payload = {
+        name: metadata.name.trim() || getDerivedTitle(),
+        description: metadata.description || getDerivedDescription(),
+        duration: formatDurationForAPI(duration),
+        seconds: duration,
+        [finalMediaType === "audio" ? "audioUrl" : "videoUrl"]: uploadedUrl, // Usa finalMediaType
+        type:
+          metadata.recordingType === "PERSONAL"
+            ? metadata.personalRecordingType
+            : "CLIENT",
+        ...(metadata.selectedClientId
+          ? { clientId: metadata.selectedClientId }
+          : {}),
+      };
+
+      console.log("Payload enviado:", payload);
+
+      const response = await PostAPI("/recording", payload, true);
+
+      if (response?.status >= 400) {
+        resetFlow();
+        throw new Error("Erro ao salvar gravação");
+      }
+
+      toast.success("Gravação salva com sucesso!");
+
+      GetReminders();
+      GetRecordings();
+
+      resetFlow();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("Erro ao processar gravação:", error);
+      toast.error(error.message || "Erro ao salvar gravação");
+      setCurrentStep("idle");
+      resetFlow();
+    }
+  };
+
+  useEffect(() => {
+    if (
+      recorder.mediaBlob &&
+      !recorder.isRecording &&
+      currentStep === "recording"
+    ) {
+      setCurrentStep("preview");
+    }
+  }, [recorder.mediaBlob, recorder.isRecording, currentStep]);
+
+  useEffect(() => {
+    // CORRIGIDO: Usa currentMediaType
+    if (currentStep === "preview" && recorder.mediaUrl) {
+      if (currentMediaType === "video" && videoPreviewRef.current) {
+        videoPreviewRef.current.src = recorder.mediaUrl;
+        videoPreviewRef.current.load();
+      } else if (currentMediaType === "audio" && audioPreviewRef.current) {
+        audioPreviewRef.current.src = recorder.mediaUrl;
+        audioPreviewRef.current.load();
+      }
+    }
+  }, [currentStep, recorder.mediaUrl, currentMediaType]); // ← ADICIONA currentMediaType como dependência
+
+  const getDerivedTitle = () => {
+    if (metadata.name) return metadata.name;
+
+    if (metadata.recordingType === "CLIENT") {
+      return "Gravação do Paciente";
+    } else {
+      const labels = {
+        REMINDER: "Lembrete",
+        STUDY: "Estudo",
+        OTHER: "Gravação",
+      };
+      return labels[metadata.personalRecordingType!] || "Gravação Pessoal";
+    }
+  };
+
+  const getDerivedDescription = () => {
+    if (metadata.description) return metadata.description;
+
+    const date = moment().format("DD/MM/YYYY HH:mm:ss");
+
+    if (metadata.recordingType === "CLIENT") {
+      const type =
+        metadata.consultationType === "IN_PERSON" ? "presencial" : "online";
+      return `Consulta ${type} realizada em ${date}`;
+    } else {
+      const labels = {
+        REMINDER: "Gravação de lembrete",
+        STUDY: "Gravação de estudo",
+        OTHER: "Gravação pessoal",
+      };
+      return (
+        labels[metadata.personalRecordingType!] ||
+        `Gravação pessoal realizada em ${date}`
+      );
+    }
+  };
+
+  const handleStartRecording = async () => {
+    if (!validateForm()) return;
+
+    // A lógica de setMediaType foi removida.
+    // O tipo de gravação é determinado por currentMediaType.
+
+    if (currentMediaType === "video") {
+      // Usa currentMediaType
+      setCurrentStep("instructions");
+    } else {
+      try {
+        setCurrentStep("recording");
+        await recorder.startRecording();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        let errorMessage = "Erro ao iniciar gravação";
+
+        if (error.name === "NotAllowedError") {
+          errorMessage = "Permissão negada. Permita o acesso ao microfone.";
+        } else if (error.name === "NotFoundError") {
+          errorMessage = "Nenhum microfone encontrado.";
+        }
+
+        setError(errorMessage);
+        setCurrentStep("idle");
+      }
+    }
+  };
+
+  const handleStartVideoRecording = async () => {
+    try {
+      setCurrentStep("recording");
+      await recorder.startRecording();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      let errorMessage = "Erro ao iniciar gravação de vídeo";
+
+      if (error.name === "NotAllowedError") {
+        errorMessage = "Permissão negada. Permita o compartilhamento de tela.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
+      setCurrentStep("idle");
+    }
+  };
+
+  // CORRIGIDO: Passa currentMediaType para handleRecordingComplete
+  const handleConfirmRecording = () => {
+    if (recorder.mediaBlob) {
+      handleRecordingComplete(
+        recorder.mediaBlob,
+        recorder.duration,
+        currentMediaType,
+      );
+    }
+  };
+
+  const handleRetryRecording = () => {
+    recorder.resetRecording();
+    setCurrentStep("save-dialog");
   };
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    if (mins === 0) return `${secs}s`;
-    return `${mins}m ${secs}s`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleToggleRecording = async () => {
-    try {
-      if (isRecording || isPaused || duration > 0) {
-        stopRecording();
-        setShowSaveDialog(true);
-      } else {
-        await startRecording();
-      }
-    } catch (error) {
-      console.error("Erro ao alternar gravação:", error);
-      alert("Erro ao acessar o microfone. Verifique as permissões.");
+  useEffect(() => {
+    resetFlow();
+  }, []);
+
+  useEffect(() => {
+    const isSheetOpen = currentStep !== "idle";
+    const body = document.body;
+
+    if (isSheetOpen) {
+      body.classList.add("no-scroll");
+    } else {
+      body.classList.remove("no-scroll");
     }
-  };
 
-  async function handleUploadAudio(): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const f = new File([audioBlob as any], "audio.mp3", { type: "audio/mpeg" });
-    const formData = new FormData();
-    formData.append("file", f);
-    const response = await PostAPI("/convert", formData, false);
-    if (!response || response.status >= 400)
-      throw new Error("Falha no upload de áudio.");
-    const url = response?.body?.url || response?.body?.audioUrl;
-    if (!url) throw new Error("Upload não retornou URL do áudio.");
-    return url;
-  }
-
-  const handleSaveRecording = async () => {
-    if (payload.type === "CLIENT") {
-      if (!payload.clientId) {
-        toast.error("Selecione um paciente.");
-        return;
-      }
-    }
-    setIsSubmitting(true);
-
-    const uploadedUrl = await handleUploadAudio();
-
-    const recordingData: SaveRecordingData = {
-      name: payload.name?.trim() || "Anotações da sessão",
-      description: payload.description?.trim() || "Resumo em áudio.",
-      duration: formatDuration(duration),
-      seconds: duration,
-      audioUrl: uploadedUrl,
-      type: payload.type,
-      ...(payload.clientId ? { clientId: payload.clientId } : {}),
+    return () => {
+      body.classList.remove("no-scroll");
     };
-
-    const response = await PostAPI("/recording", recordingData, true);
-    if (response.status === 200) {
-      GetClients();
-      GetRecordings();
-      GetReminders();
-      toast.success("Gravação salva com sucesso!");
-      setShowSaveDialog(false);
-      resetRecording();
-      return setIsSubmitting(false);
-    }
-    toast.error("Erro ao salvar a gravação. Tente novamente.");
-    return setIsSubmitting(false);
-  };
+  }, [currentStep]);
 
   return (
     <>
-      <button
-        className={cn(
-          "flex h-10 items-center gap-2 rounded-3xl px-4 py-1 text-sm transition xl:text-base",
-          isRecording || (isPaused && duration > 0) || showSaveDialog
-            ? "text-primary bg-white hover:bg-neutral-100 hover:shadow-md"
-            : "bg-white/10 text-white hover:bg-white/20 hover:shadow-sm",
-        )}
-        onClick={handleToggleRecording}
-        disabled={showSaveDialog}
-      >
-        {/* <div className="absolute left-0">
-          <AudioVisualizer
-            isRecording={isRecording && !isPaused}
-            getVisualizerData={getVisualizerData}
-          />
-        </div> */}
-        {isRecording || isPaused || duration > 0 ? (
-          <>
-            <Pause className="h-4" />
-            {formatTime(duration)}
-          </>
-        ) : (
-          <>
-            <Play className="h-4" />
-            <span>Iniciar gravação</span>
-          </>
-        )}
-      </button>
-
-      {showSaveDialog && (
-        <div
-          onClick={() => {
-            setShowSaveDialog(false);
-            resetRecording();
-          }}
-          className="bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20 text-black"
-        >
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            className="w-full max-w-lg rounded-t-2xl bg-white p-6"
-          >
-            <h2 className="mb-4 text-xl font-bold">Salvar Gravação</h2>
-
-            <form
-              onSubmit={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleSaveRecording();
-              }}
-            >
-              <div className="flex flex-col">
-                <label className="text-neutral-600">Nome da Gravação</label>
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="Nome da gravação"
-                  defaultValue={derivedTitle}
-                  className="mb-3 w-full rounded-lg border p-3"
-                  required
-                />
+      {currentStep === "idle" && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
+              <Mic size={20} />
+              Nova Gravação
+              <ChevronDown size={20} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => openSaveDialog("CLIENT")}>
+              <div className="flex items-center gap-2">
+                <Video size={18} className="text-blue-600" />
+                <div>
+                  <p className="font-semibold text-gray-800">Consulta</p>
+                  <p className="text-xs text-gray-500">Presencial ou Online</p>
+                </div>
               </div>
-
-              <div className="flex flex-col">
-                <label className="text-neutral-600">Tipo de Gravação</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="mb-3 flex w-full cursor-pointer items-center gap-2 rounded-lg border p-3">
-                      <input
-                        name="type"
-                        type="text"
-                        placeholder="Tipo"
-                        value={
-                          payload.type === "CLIENT"
-                            ? "Paciente"
-                            : payload.type === "REMINDER"
-                              ? "Lembrete"
-                              : payload.type === "STUDY"
-                                ? "Estudo"
-                                : payload.type === "OTHER"
-                                  ? "Outro"
-                                  : ""
-                        }
-                        className="w-full cursor-pointer"
-                        required
-                        readOnly
-                      />
-                      <ChevronDown className="w-5 min-w-5" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="z-[9999]">
-                    <DropdownMenuItem
-                      className={cn(
-                        "hover:bg-neutral-200",
-                        payload.type === "CLIENT" && "bg-neutral-200",
-                      )}
-                      onClick={() => setPayload({ ...payload, type: "CLIENT" })}
-                    >
-                      Paciente
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className={cn(
-                        "hover:bg-neutral-200",
-                        payload.type === "REMINDER" && "bg-neutral-200",
-                      )}
-                      onClick={() =>
-                        setPayload({
-                          ...payload,
-                          type: "REMINDER",
-                          clientId: "",
-                        })
-                      }
-                    >
-                      Lembrete
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className={cn(
-                        "hover:bg-neutral-200",
-                        payload.type === "STUDY" && "bg-neutral-200",
-                      )}
-                      onClick={() =>
-                        setPayload({ ...payload, type: "STUDY", clientId: "" })
-                      }
-                    >
-                      Estudo
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className={cn(
-                        "hover:bg-neutral-200",
-                        payload.type === "OTHER" && "bg-neutral-200",
-                      )}
-                      onClick={() =>
-                        setPayload({ ...payload, type: "OTHER", clientId: "" })
-                      }
-                    >
-                      Outro
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openSaveDialog("PERSONAL")}>
+              <div className="flex items-center gap-2">
+                <Mic size={18} className="text-green-600" />
+                <div>
+                  <p className="font-semibold text-gray-800">Pessoal</p>
+                  <p className="text-xs text-gray-500">
+                    Lembretes, estudos, etc.
+                  </p>
+                </div>
               </div>
-
-              <div
-                className={cn(
-                  "flex flex-col",
-                  payload.type !== "CLIENT" && "hidden",
-                )}
-              >
-                <label className="text-neutral-600">Paciente</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="mb-3 flex w-full cursor-pointer items-center gap-2 rounded-lg border p-3">
-                      <input
-                        name="clientId"
-                        type="text"
-                        placeholder="Paciente"
-                        value={
-                          payload.clientId
-                            ? clients.find((c) => c.id === payload.clientId)
-                                ?.name
-                            : "Selecione um Paciente"
-                        }
-                        className="w-full cursor-pointer"
-                        required
-                        readOnly
-                      />
-                      <ChevronDown className="w-5 min-w-5" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="z-[9999] h-80 overflow-y-scroll">
-                    {clients.map((c) => (
-                      <DropdownMenuItem
-                        key={c.id}
-                        className={cn(
-                          "hover:bg-neutral-200",
-                          payload.clientId === c.id && "bg-neutral-200",
-                        )}
-                        onClick={() =>
-                          setPayload({ ...payload, clientId: c.id })
-                        }
-                      >
-                        {c.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-neutral-600">Descrição</label>
-                <textarea
-                  name="description"
-                  placeholder="Descrição (opcional)"
-                  className="mb-4 h-24 w-full rounded-lg border p-3"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSaveDialog(false);
-                    resetRecording();
-                  }}
-                  className="flex-1 rounded-lg bg-gray-200 py-3 font-semibold"
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  className="flex-1 rounded-lg bg-blue-500 py-3 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
-                  disabled={isSubmitting}
-                  onClick={handleSaveRecording}
-                >
-                  {isSubmitting ? "Salvando..." : "Salvar"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
+
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            if (currentStep === "recording") return;
+            resetFlow();
+          }
+        }}
+        className={cn(
+          "bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20 backdrop-blur-xs",
+          currentStep === "idle" && "hidden",
+        )}
+      >
+        {currentStep === "save-dialog" && (
+          <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {metadata.recordingType === "CLIENT"
+                  ? "Nova Consulta"
+                  : "Nova Gravação Pessoal"}
+              </h2>
+              <button
+                onClick={resetFlow}
+                className="text-gray-500 transition-colors hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {error && (
+              <div className="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                <AlertCircle
+                  className="mt-0.5 flex-shrink-0 text-red-500"
+                  size={20}
+                />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Nome da Gravação
+                </label>
+                <input
+                  type="text"
+                  value={metadata.name}
+                  onChange={(e) => updateMetadata({ name: e.target.value })}
+                  placeholder={
+                    metadata.recordingType === "CLIENT"
+                      ? "Ex: Consulta - João Silva"
+                      : metadata.personalRecordingType === "REMINDER"
+                        ? "Ex: Lembrete - Assinar documento"
+                        : metadata.personalRecordingType === "STUDY"
+                          ? "Ex: Estudo - Análise de dados"
+                          : "Ex: Gravação pessoal"
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-black transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Descrição da Gravação
+                </label>
+                <textarea
+                  value={metadata.description}
+                  onChange={(e) =>
+                    updateMetadata({ description: e.target.value })
+                  }
+                  onWheel={(e) => e.stopPropagation()}
+                  placeholder="Descrição"
+                  className="h-32 w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-black transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {metadata.recordingType === "PERSONAL" && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Tipo de Gravação
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      onClick={() =>
+                        updateMetadata({ personalRecordingType: "REMINDER" })
+                      }
+                      className={cn(
+                        "rounded-lg border-2 p-4 transition-all",
+                        metadata.personalRecordingType === "REMINDER"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      <Lightbulb
+                        size={24}
+                        className={cn(
+                          "mx-auto mb-2",
+                          metadata.personalRecordingType === "REMINDER"
+                            ? "text-blue-600"
+                            : "text-gray-600",
+                        )}
+                      />
+                      <p
+                        className={cn(
+                          "font-semibold",
+                          metadata.personalRecordingType === "REMINDER"
+                            ? "text-blue-600"
+                            : "text-gray-800",
+                        )}
+                      >
+                        Lembrete
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">Apenas áudio</p>
+                    </button>
+                    <button
+                      onClick={() =>
+                        updateMetadata({ personalRecordingType: "STUDY" })
+                      }
+                      className={cn(
+                        "rounded-lg border-2 p-4 transition-all",
+                        metadata.personalRecordingType === "STUDY"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      <Pen
+                        size={24}
+                        className={cn(
+                          "mx-auto mb-2",
+                          metadata.personalRecordingType === "STUDY"
+                            ? "text-blue-600"
+                            : "text-gray-600",
+                        )}
+                      />
+                      <p
+                        className={cn(
+                          "font-semibold",
+                          metadata.personalRecordingType === "STUDY"
+                            ? "text-blue-600"
+                            : "text-gray-800",
+                        )}
+                      >
+                        Estudos
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">Apenas áudio</p>
+                    </button>
+                    <button
+                      onClick={() =>
+                        updateMetadata({ personalRecordingType: "OTHER" })
+                      }
+                      className={cn(
+                        "rounded-lg border-2 p-4 transition-all",
+                        metadata.personalRecordingType === "OTHER"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      <TriangleAlert
+                        size={24}
+                        className={cn(
+                          "mx-auto mb-2",
+                          metadata.personalRecordingType === "OTHER"
+                            ? "text-blue-600"
+                            : "text-gray-600",
+                        )}
+                      />
+                      <p
+                        className={cn(
+                          "font-semibold",
+                          metadata.personalRecordingType === "OTHER"
+                            ? "text-blue-600"
+                            : "text-gray-800",
+                        )}
+                      >
+                        Outro
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">Apenas áudio</p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {metadata.recordingType === "CLIENT" && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Tipo de Consulta
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() =>
+                        updateMetadata({ consultationType: "IN_PERSON" })
+                      }
+                      className={cn(
+                        "rounded-lg border-2 p-4 transition-all",
+                        metadata.consultationType === "IN_PERSON"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      <Mic
+                        size={24}
+                        className={cn(
+                          "mx-auto mb-2",
+                          metadata.consultationType === "IN_PERSON"
+                            ? "text-blue-600"
+                            : "text-gray-600",
+                        )}
+                      />
+                      <p
+                        className={cn(
+                          "font-semibold",
+                          metadata.consultationType === "IN_PERSON"
+                            ? "text-blue-600"
+                            : "text-gray-800",
+                        )}
+                      >
+                        Presencial
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">Apenas áudio</p>
+                    </button>
+                    <TooltipProvider>
+                      <Tooltip
+                        open={isTooltipOpen}
+                        onOpenChange={setIsTooltipOpen}
+                      >
+                        <TooltipTrigger
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsTooltipOpen(true);
+                          }}
+                          onBlur={() => setIsTooltipOpen(false)}
+                          className="flex w-full flex-1"
+                        >
+                          <button
+                            onClick={() =>
+                              updateMetadata({ consultationType: "ONLINE" })
+                            }
+                            className={cn(
+                              "pointer-events-none w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
+                              "border-gray-300 hover:border-gray-400",
+                            )}
+                          >
+                            <Video
+                              size={24}
+                              className={cn(
+                                "mx-auto mb-2",
+                                metadata.consultationType === "ONLINE"
+                                  ? "text-blue-600"
+                                  : "text-gray-600",
+                              )}
+                            />
+                            <p
+                              className={cn(
+                                "font-semibold",
+                                metadata.consultationType === "ONLINE"
+                                  ? "text-blue-600"
+                                  : "text-gray-800",
+                              )}
+                            >
+                              Online
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">
+                              Vídeo + áudio
+                            </p>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          align="end"
+                          className="w-80 border-none bg-white text-xs text-black shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_4px_11px_rgba(0,0,0,0.1)]"
+                        >
+                          Funcionalidade em desenvolvimento. Em breve você
+                          poderá gravar a tela e áudio das suas consultas
+                          online.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              )}
+
+              {metadata.recordingType === "CLIENT" && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Selecionar Paciente
+                  </label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-3">
+                        <input
+                          type="text"
+                          value={
+                            metadata.selectedClientId
+                              ? clients.find(
+                                  (c) => c.id === metadata.selectedClientId,
+                                )?.name
+                              : "Selecione um Paciente"
+                          }
+                          className="w-full cursor-pointer text-black outline-none"
+                          required
+                          readOnly
+                        />
+                        <ChevronDown size={20} className="text-gray-600" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="top"
+                      className="z-[9999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
+                      onWheel={(e) => e.stopPropagation()}
+                    >
+                      {clients.length !== 0 ? (
+                        clients.map((client) => (
+                          <DropdownMenuItem
+                            key={client.id}
+                            className={cn(
+                              "hover:bg-neutral-200",
+                              metadata.selectedClientId === client.id
+                                ? "bg-neutral-200"
+                                : "",
+                            )}
+                            onClick={() =>
+                              updateMetadata({ selectedClientId: client.id })
+                            }
+                          >
+                            {client.name}
+                          </DropdownMenuItem>
+                        ))
+                      ) : (
+                        <DropdownMenuItem className="hover:bg-neutral-200">
+                          Nenhum Paciente encontrado, cadastre um novo.
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+
+              <button
+                onClick={handleStartRecording}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-4 font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                {currentMediaType === "video" ? ( // Usa currentMediaType
+                  <>
+                    <Video size={20} />
+                    Continuar
+                  </>
+                ) : (
+                  <>
+                    <Mic size={20} />
+                    Iniciar Gravação
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === "instructions" && (
+          <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">Instruções</h2>
+              <button
+                onClick={resetFlow}
+                className="text-gray-500 transition-colors hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <h3 className="mb-3 flex items-center gap-2 font-semibold text-blue-900">
+                  <AlertCircle size={20} />
+                  Instruções Importantes
+                </h3>
+                <ol className="space-y-3 text-sm text-blue-800">
+                  <li className="flex items-start gap-2">
+                    <span className="min-w-[24px] font-bold">1.</span>
+                    <span>
+                      Na próxima tela, selecione a{" "}
+                      <strong>ABA do Google Meet</strong> (não a janela inteira)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="min-w-[24px] font-bold">2.</span>
+                    <span>
+                      Certifique-se de{" "}
+                      <strong>
+                        marcar a opção {"'"}Compartilhar áudio da aba{"'"}
+                      </strong>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="min-w-[24px] font-bold">3.</span>
+                    <span>
+                      Clique em{" "}
+                      <strong>
+                        {"'"}Compartilhar{"'"}
+                      </strong>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="min-w-[24px] font-bold">4.</span>
+                    <span>
+                      A gravação iniciará automaticamente e capturará vídeo +
+                      áudio da reunião
+                    </span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <div className="flex items-start gap-2 text-sm text-green-800">
+                  <CheckCircle2 size={20} className="mt-0.5 flex-shrink-0" />
+                  <p>
+                    <strong>Dica:</strong> O áudio do seu microfone também será
+                    capturado automaticamente para registrar suas observações
+                    durante a consulta.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCurrentStep("save-dialog")}
+                  className="flex-1 rounded-lg bg-gray-200 py-4 font-semibold text-gray-700 transition-colors hover:bg-gray-300"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={handleStartVideoRecording}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 py-4 font-semibold text-white transition-colors hover:bg-blue-700"
+                >
+                  <Video size={20} />
+                  Iniciar Gravação
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentStep === "recording" && (
+          <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">Gravando...</h2>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="relative">
+                  <div className="bg-primary flex h-24 w-24 animate-pulse items-center justify-center rounded-full">
+                    {metadata.consultationType === "ONLINE" ? (
+                      <Video size={40} className="text-white" />
+                    ) : (
+                      <Mic size={40} className="text-white" />
+                    )}
+                  </div>
+                  <div className="bg-primary absolute -top-1 -right-1 h-6 w-6 animate-ping rounded-full" />
+                </div>
+
+                <p className="mt-6 text-3xl font-bold text-gray-800">
+                  {formatDuration(recorder.duration)}
+                </p>
+
+                <p className="mt-2 text-gray-600">
+                  {metadata.consultationType === "ONLINE"
+                    ? "Gravando vídeo e áudio..."
+                    : "Gravando áudio..."}
+                </p>
+              </div>
+
+              {metadata.consultationType === "ONLINE" && (
+                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                  <p className="text-center text-sm text-yellow-800">
+                    Para parar a gravação, clique em {"'"}Parar compartilhamento
+                    {"'"} na barra do navegador ou no botão abaixo
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={recorder.stopRecording}
+                className="bg-primary flex w-full items-center justify-center gap-2 rounded-lg py-4 font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                <Pause size={20} />
+                Parar Gravação
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentStep === "preview" && (
+          <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Revisar Gravação
+              </h2>
+              <button
+                onClick={resetFlow}
+                className="text-gray-500 transition-colors hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {currentMediaType === "video" && ( // Usa currentMediaType
+                <div className="overflow-hidden rounded-lg bg-black">
+                  <video
+                    ref={videoPreviewRef}
+                    controls
+                    className="w-full"
+                    style={{ maxHeight: "400px" }}
+                  >
+                    Seu navegador não suporta o elemento de vídeo.
+                  </video>
+                </div>
+              )}
+
+              {currentMediaType === "audio" && ( // Usa currentMediaType
+                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12">
+                  <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
+                    <Volume2 size={40} className="text-blue-600" />
+                  </div>
+                  <audio
+                    ref={audioPreviewRef}
+                    controls
+                    className="w-full max-w-md"
+                  >
+                    Seu navegador não suporta o elemento de áudio.
+                  </audio>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-600">Duração</p>
+                    <p className="text-lg font-bold text-gray-800">
+                      {formatDuration(recorder.duration)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Tipo</p>
+                    <p className="text-lg font-bold text-gray-800">
+                      {currentMediaType === "video" ? "Vídeo + Áudio" : "Áudio"}{" "}
+                      {/* Usa currentMediaType */}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-start gap-2 text-sm text-blue-800">
+                  <AlertCircle size={20} className="mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Valide sua gravação</p>
+                    <p className="mt-1">
+                      {currentMediaType === "video"
+                        ? "Reproduza o vídeo e verifique se o áudio e vídeo estão sincronizados e com boa qualidade."
+                        : "Reproduza o áudio e verifique se está audível e com boa qualidade."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleRetryRecording}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-200 py-4 font-semibold text-gray-700 transition-colors hover:bg-gray-300"
+                >
+                  <RefreshCw size={20} />
+                  Gravar Novamente
+                </button>
+                <button
+                  onClick={handleConfirmRecording}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 py-4 font-semibold text-white transition-colors hover:bg-green-700"
+                >
+                  <Send size={20} />
+                  Confirmar e Enviar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentStep === "processing" && (
+          <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+              <p className="mt-6 text-lg font-semibold text-gray-800">
+                Processando gravação...
+              </p>
+              <p className="mt-2 text-center text-gray-600">
+                Aguarde enquanto preparamos sua gravação para transcrição
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }
