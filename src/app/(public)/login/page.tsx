@@ -12,8 +12,8 @@ export default function Login() {
 
   return (
     <>
-      <div className="relative flex h-full min-h-[100svh] flex-col gap-2 overflow-x-hidden p-2 xl:flex-row 2xl:gap-4 2xl:p-4">
-        <div className="to-primary relative mx-auto flex w-full flex-col overflow-hidden rounded-3xl bg-gradient-to-b from-gray-800 xl:max-w-[50vw] xl:justify-between xl:p-8">
+      <div className="relative flex h-full min-h-[100svh] flex-col gap-2 overflow-x-hidden p-2 max-lg:items-center max-lg:justify-center lg:flex-row 2xl:gap-4 2xl:p-4">
+        <div className="to-primary relative mx-auto hidden h-60 w-full max-w-[31.5rem] flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-b from-gray-800 px-4 py-8 md:h-auto lg:flex lg:max-w-[50vw] lg:justify-between">
           <Image
             className="object-full absolute top-0 left-0 m-auto block h-full w-full rounded-3xl"
             src="/static/login.png"
@@ -26,13 +26,13 @@ export default function Login() {
             alt=""
             width={1000}
             height={500}
-            className="h-max max-w-80 object-contain"
+            className="mx-auto h-20 w-max object-contain lg:mx-0 lg:h-max lg:max-w-80"
           />
-          <div className="flex flex-col text-white xl:gap-4">
-            <span className="text-lg font-bold xl:text-2xl">
+          <div className="flex flex-col p-2 text-white lg:gap-4">
+            <span className="text-sm font-bold lg:text-2xl lg:text-lg">
               Menos digitação, mais atendimentos... Simples assim!
             </span>
-            <span>
+            <span className="text-xs lg:text-base">
               Acesse seu assistente virtual. O{" "}
               {process.env.PROJECT_NAME || "Health Voice"} transforma suas
               conversas em prontuários estruturados, liberando horas do seu dia
@@ -40,14 +40,14 @@ export default function Login() {
             </span>
           </div>
         </div>
-        <div className="relative flex w-full rounded-3xl bg-white p-2 xl:max-w-[50vw]">
-          <div className="bg-primary m-auto w-full max-w-[31.5rem] rounded-3xl xl:p-8">
+        <div className="relative flex h-full w-full rounded-3xl bg-white lg:h-auto lg:max-w-[50vw] lg:p-2">
+          <div className="bg-primary m-auto w-full max-w-[31.5rem] rounded-3xl p-8">
             {forgot ? (
               <ForgotPassword onClick={() => setForgot(false)} />
             ) : (
               <>
                 <Image
-                  className="mx-auto mb-2 h-auto w-48 2xl:mb-8 2xl:w-80"
+                  className="mx-auto mb-2 h-auto w-full 2xl:mb-8 2xl:w-80"
                   src="/logos/logo.png"
                   width={1000}
                   height={500}

@@ -153,7 +153,7 @@ export function AudioRecorder({
     <>
       <button
         className={cn(
-          "flex h-10 items-center gap-2 rounded-3xl px-4 py-1 text-sm transition md:text-base",
+          "flex h-10 items-center gap-2 rounded-3xl px-4 py-1 text-sm transition xl:text-base",
           isRecording || (isPaused && duration > 0) || showSaveDialog
             ? "text-primary bg-white hover:bg-neutral-100 hover:shadow-md"
             : "bg-white/10 text-white hover:bg-white/20 hover:shadow-sm",
