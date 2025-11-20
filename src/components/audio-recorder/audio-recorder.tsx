@@ -574,7 +574,7 @@ export function AudioRecorder() {
                               updateMetadata({ consultationType: "ONLINE" })
                             }
                             className={cn(
-                              "w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
+                              "pointer-events-none w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
                               "border-gray-300 hover:border-gray-400",
                             )}
                           >
