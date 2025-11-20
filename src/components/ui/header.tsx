@@ -392,9 +392,9 @@ export function Header() {
                     className="h-4 w-max fill-white object-contain text-white"
                   />
                   <span>
-                    {moment(selectedRecording?.createdAt).format(
-                      "DD/MM/YYYY - HH:mm",
-                    )}
+                    {moment(selectedReminder?.date).format("DD/MM/YYYY") +
+                      " - " +
+                      selectedReminder?.time}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -405,7 +405,7 @@ export function Header() {
                     height={100}
                     className="h-4 w-max fill-white object-contain text-white"
                   />
-                  <span>{selectedRecording?.duration}</span>
+                  <span>{selectedReminder?.recording.duration}</span>
                 </div>
               </div>
             </div>
@@ -635,7 +635,7 @@ export function Header() {
                 </span>
               </div>
               <div className="hidden items-center gap-2 md:flex">
-                <AudioRecorder />
+                <AudioRecorder buttonClassName="bg-white/10 hover:bg-white/20" />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
@@ -652,7 +652,7 @@ export function Header() {
           )}
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
-          <AudioRecorder />
+          <AudioRecorder buttonClassName="bg-white/10 hover:bg-white/20" />
           {/* <AudioRecorder /> */}
 
           <DropdownMenu>

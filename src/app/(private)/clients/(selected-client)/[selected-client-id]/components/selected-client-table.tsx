@@ -1,4 +1,5 @@
 "use client";
+import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import {
   Table,
@@ -143,8 +144,11 @@ export function SelectedClientTable() {
                       colSpan={GeneralRecordingsColumns.length}
                       className="h-24"
                     >
-                      <div className="flex w-full items-center justify-center">
-                        Nenhuma consulta encontrada.
+                      <div className="flex items-start text-start">
+                        <AudioRecorder
+                          buttonClassName="bg-primary hover:bg-primary/95 text-white mx-auto"
+                          skipToClient
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

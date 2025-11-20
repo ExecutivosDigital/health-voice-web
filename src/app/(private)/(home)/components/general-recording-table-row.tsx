@@ -88,11 +88,7 @@ export function GeneralRecordingTableItem({ recording }: Props) {
                 router.push(`/reminders/${recording.id}`);
               }
             }}
-            className={cn(
-              "bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md",
-              // recording.type === "REMINDER" &&
-              //   "cursor-not-allowed opacity-50 hover:shadow-none",
-            )}
+            className="bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md"
           >
             <span>Acessar</span>
             <ChevronRight

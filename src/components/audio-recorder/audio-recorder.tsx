@@ -31,6 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/blocks/tooltip";
+import { CreateClientSheet } from "../ui/create-client-sheet";
 import { useMediaRecorder } from "./use-media-recorder";
 import { useRecordingFlow } from "./use-recording-flow";
 import { useRecordingUpload } from "./use-recording-upload";
@@ -46,11 +47,22 @@ const getMediaTypeFromMetadata = (metadata: {
     : "audio";
 };
 
-export function AudioRecorder() {
-  const { GetRecordings, GetReminders, clients } = useGeneralContext();
+interface AudioRecorderProps {
+  buttonClassName: string;
+  skipToClient?: boolean;
+}
+
+export function AudioRecorder({
+  buttonClassName,
+  skipToClient,
+}: AudioRecorderProps) {
+  const { GetRecordings, GetReminders, clients, selectedClient } =
+    useGeneralContext();
   const { PostAPI } = useApiContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
   const audioPreviewRef = useRef<HTMLAudioElement>(null);
@@ -127,8 +139,6 @@ export function AudioRecorder() {
           : {}),
       };
 
-      console.log("Payload enviado:", payload);
-
       const response = await PostAPI("/recording", payload, true);
 
       if (response?.status >= 400) {
@@ -173,6 +183,16 @@ export function AudioRecorder() {
       }
     }
   }, [currentStep, recorder.mediaUrl, currentMediaType]); // ← ADICIONA currentMediaType como dependência
+
+  const handleDropdownOpenChange = (open: boolean) => {
+    if (open && skipToClient) {
+      // Se está tentando abrir E skipToClient é true, abre direto o save dialog
+      openSaveDialog("CLIENT");
+    } else {
+      // Caso contrário, comportamento normal do dropdown
+      setIsDropdownOpen(open);
+    }
+  };
 
   const getDerivedTitle = () => {
     if (metadata.name) return metadata.name;
@@ -300,12 +320,26 @@ export function AudioRecorder() {
     };
   }, [currentStep]);
 
+  useEffect(() => {
+    if (skipToClient) {
+      updateMetadata({ ...metadata, selectedClientId: selectedClient?.id });
+    }
+  }, [skipToClient]);
+
   return (
     <>
       {currentStep === "idle" && (
-        <DropdownMenu>
+        <DropdownMenu
+          open={isDropdownOpen}
+          onOpenChange={handleDropdownOpenChange}
+        >
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
+            <button
+              className={cn(
+                "flex items-center gap-2 rounded-3xl px-4 py-2 transition",
+                buttonClassName,
+              )}
+            >
               <Mic size={20} />
               Nova Gravação
               <ChevronDown size={20} />
@@ -574,7 +608,7 @@ export function AudioRecorder() {
                               updateMetadata({ consultationType: "ONLINE" })
                             }
                             className={cn(
-                              "pointer-events-none w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
+                              "w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
                               "border-gray-300 hover:border-gray-400",
                             )}
                           >
@@ -645,7 +679,7 @@ export function AudioRecorder() {
                       className="z-[9999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
                       onWheel={(e) => e.stopPropagation()}
                     >
-                      {clients.length !== 0 ? (
+                      {clients.length === 0 ? (
                         clients.map((client) => (
                           <DropdownMenuItem
                             key={client.id}
@@ -663,8 +697,11 @@ export function AudioRecorder() {
                           </DropdownMenuItem>
                         ))
                       ) : (
-                        <DropdownMenuItem className="hover:bg-neutral-200">
-                          Nenhum Paciente encontrado, cadastre um novo.
+                        <DropdownMenuItem
+                          onSelect={() => setIsCreateClientSheetOpen(true)}
+                          className="flex h-full items-center justify-center font-semibold hover:bg-neutral-200"
+                        >
+                          Cadastrar Paciente
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -935,6 +972,13 @@ export function AudioRecorder() {
           </div>
         )}
       </div>
+      {isCreateClientSheetOpen && (
+        <CreateClientSheet
+          isOpen={isCreateClientSheetOpen}
+          onClose={() => setIsCreateClientSheetOpen(false)}
+          className="text-black"
+        />
+      )}
     </>
   );
 }

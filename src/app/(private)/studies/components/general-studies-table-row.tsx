@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/blocks/tooltip";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
@@ -57,7 +58,10 @@ export function GeneralStudiesTableItem({ recording }: Props) {
               </span>
             </TooltipTrigger>
             <TooltipContent
-              className="text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]"
+              className={cn(
+                "text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]",
+                recording.description === "" && "hidden",
+              )}
               side="top"
               align="start"
             >

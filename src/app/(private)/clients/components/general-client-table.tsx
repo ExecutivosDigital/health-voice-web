@@ -8,9 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/blocks/table";
+import { CreateClientSheet } from "@/components/ui/create-client-sheet";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GeneralClientsTableHeader } from "./general-client-table-header";
 import { GeneralClientTableItem } from "./general-client-table-row";
@@ -31,6 +32,7 @@ export function GeneralClientsTable() {
 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
+  const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
 
   const GeneralClientsColumns = [
     { key: "NAME", label: "Nome do Paciente", sortable: true },
@@ -143,9 +145,13 @@ export function GeneralClientsTable() {
                       colSpan={GeneralClientsColumns.length}
                       className="h-24"
                     >
-                      <div className="flex w-full items-center justify-center">
-                        Nenhum Paciente encontrado.
-                      </div>
+                      <button
+                        onClick={() => setIsCreateClientSheetOpen(true)}
+                        className="bg-primary mx-auto flex w-max items-center gap-2 rounded-3xl px-4 py-2 font-bold text-white shadow-sm transition hover:shadow-lg"
+                      >
+                        Cadastrar um Paciente
+                        <Plus className="stroke-3" />
+                      </button>
                     </TableCell>
                   </TableRow>
                 )}
@@ -161,6 +167,12 @@ export function GeneralClientsTable() {
             pages={clientsTotalPages}
           />
         </div>
+      )}
+      {isCreateClientSheetOpen && (
+        <CreateClientSheet
+          isOpen={isCreateClientSheetOpen}
+          onClose={() => setIsCreateClientSheetOpen(false)}
+        />
       )}
     </>
   );
