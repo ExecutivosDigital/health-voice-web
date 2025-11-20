@@ -49,7 +49,7 @@ export default function RootLayout({
           <Sidebar />
           <div
             className={cn(
-              "z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 overflow-hidden rounded-3xl bg-white p-4",
+              "relative z-10 mx-auto -mt-12 flex min-h-[75vh] w-full max-w-[1280px] flex-col gap-4 overflow-hidden rounded-3xl bg-white p-4",
               pathname.includes("/chat") && "min-h-[70vh]",
             )}
           >

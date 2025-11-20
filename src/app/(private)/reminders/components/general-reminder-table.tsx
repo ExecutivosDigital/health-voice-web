@@ -16,18 +16,17 @@ import { useEffect, useState } from "react";
 import { GeneralRemindersTableHeader } from "./general-reminder-table-header";
 import { GeneralReminderTableItem } from "./general-reminder-table-row";
 
-type SortableColumn = "NAME" | "DATE" | "DESCRIPTION" | null;
+type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
 export function GeneralRemindersTable() {
   const {
-    reminders,
-    isGettingReminders,
-    remindersFilters,
-    setRemindersFilters,
-    remindersTotalPages,
+    recordings,
+    isGettingRecordings,
+    recordingsFilters,
     setRecordingsFilters,
+    recordingsTotalPages,
   } = useGeneralContext();
 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -35,8 +34,8 @@ export function GeneralRemindersTable() {
 
   const GeneralRemindersColumns = [
     { key: "NAME", label: "Título da Gravação", sortable: true },
-    { key: "DATE", label: "Data da Gravação", sortable: true },
-    { key: "DESCRIPTION", label: "Descrição", sortable: true },
+    { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
+    { key: "DURATION", label: "Tempo de Gravação", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
@@ -47,7 +46,7 @@ export function GeneralRemindersTable() {
     const sortField = direction ? column : undefined;
     const sortOrder = direction || undefined;
 
-    setRemindersFilters((prev) => ({
+    setRecordingsFilters((prev) => ({
       ...prev,
       sortBy: (sortField as SortableColumn | undefined) || undefined,
       sortDirection: sortOrder || undefined,
@@ -77,6 +76,7 @@ export function GeneralRemindersTable() {
     setRecordingsFilters((prev) => ({
       ...prev,
       type: undefined,
+      query: undefined,
       page: 1,
     }));
   }, []);
@@ -90,6 +90,18 @@ export function GeneralRemindersTable() {
       return <ChevronDown className="h-4 w-4 text-gray-600" />;
     return <ChevronUp className="h-4 w-4 text-gray-300" />;
   };
+
+  useEffect(() => {
+    setRecordingsFilters((prev) => ({
+      ...prev,
+      clientId: undefined,
+      query: undefined,
+      sortBy: undefined,
+      sortDirection: undefined,
+      type: "REMINDER",
+      page: 1,
+    }));
+  }, []);
 
   return (
     <>
@@ -122,7 +134,7 @@ export function GeneralRemindersTable() {
           </TableRow>
         </TableHeader>
         <TableBody className="relative">
-          {isGettingReminders
+          {isGettingRecordings
             ? Array.from({ length: 8 }).map((_, index) => (
                 <TableRow key={index}>
                   {GeneralRemindersColumns.map((col, idx) => (
@@ -133,12 +145,12 @@ export function GeneralRemindersTable() {
                   ))}
                 </TableRow>
               ))
-            : !isGettingReminders && reminders.length !== 0
-              ? reminders.map((row) => (
+            : !isGettingRecordings && recordings.length !== 0
+              ? recordings.map((row) => (
                   <GeneralReminderTableItem key={row.id} reminder={row} />
                 ))
-              : !isGettingReminders &&
-                reminders.length === 0 && (
+              : !isGettingRecordings &&
+                recordings.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={GeneralRemindersColumns.length}
@@ -152,14 +164,14 @@ export function GeneralRemindersTable() {
                 )}
         </TableBody>
       </Table>
-      {!isGettingReminders && remindersTotalPages > 1 && (
+      {!isGettingRecordings && recordingsTotalPages > 1 && (
         <div className="border-t border-t-zinc-200 p-2">
           <CustomPagination
-            currentPage={remindersFilters.page}
+            currentPage={recordingsFilters.page}
             setCurrentPage={(page) =>
-              setRemindersFilters((prev) => ({ ...prev, page }))
+              setRecordingsFilters((prev) => ({ ...prev, page }))
             }
-            pages={remindersTotalPages}
+            pages={recordingsTotalPages}
           />
         </div>
       )}

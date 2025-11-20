@@ -25,12 +25,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/blocks/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/blocks/tooltip";
 import { CreateClientSheet } from "../ui/create-client-sheet";
 import { useMediaRecorder } from "./use-media-recorder";
 import { useRecordingFlow } from "./use-recording-flow";
@@ -56,11 +50,9 @@ export function AudioRecorder({
   buttonClassName,
   skipToClient,
 }: AudioRecorderProps) {
-  const { GetRecordings, GetReminders, clients, selectedClient } =
-    useGeneralContext();
+  const { GetRecordings, clients, selectedClient } = useGeneralContext();
   const { PostAPI } = useApiContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -129,7 +121,7 @@ export function AudioRecorder({
         description: metadata.description || getDerivedDescription(),
         duration: formatDurationForAPI(duration),
         seconds: duration,
-        [finalMediaType === "audio" ? "audioUrl" : "videoUrl"]: uploadedUrl, // Usa finalMediaType
+        audioUrl: uploadedUrl, // Usa finalMediaType
         type:
           metadata.recordingType === "PERSONAL"
             ? metadata.personalRecordingType
@@ -139,7 +131,9 @@ export function AudioRecorder({
           : {}),
       };
 
+      console.log("payload", payload);
       const response = await PostAPI("/recording", payload, true);
+      console.log("response", response);
 
       if (response?.status >= 400) {
         resetFlow();
@@ -148,7 +142,6 @@ export function AudioRecorder({
 
       toast.success("Gravação salva com sucesso!");
 
-      GetReminders();
       GetRecordings();
 
       resetFlow();
@@ -334,7 +327,7 @@ export function AudioRecorder({
           onOpenChange={handleDropdownOpenChange}
         >
           <DropdownMenuTrigger asChild>
-            <button
+            <div
               className={cn(
                 "flex items-center gap-2 rounded-3xl px-4 py-2 transition",
                 buttonClassName,
@@ -343,7 +336,7 @@ export function AudioRecorder({
               <Mic size={20} />
               Nova Gravação
               <ChevronDown size={20} />
-            </button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onSelect={() => openSaveDialog("CLIENT")}>
@@ -589,63 +582,41 @@ export function AudioRecorder({
                       </p>
                       <p className="mt-1 text-xs text-gray-500">Apenas áudio</p>
                     </button>
-                    <TooltipProvider>
-                      <Tooltip
-                        open={isTooltipOpen}
-                        onOpenChange={setIsTooltipOpen}
+
+                    <button
+                      onClick={() =>
+                        updateMetadata({ consultationType: "ONLINE" })
+                      }
+                      className={cn(
+                        "w-full flex-1 rounded-lg border-2 p-4 transition-all",
+                        metadata.consultationType === "ONLINE"
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-300 hover:border-gray-400",
+                      )}
+                    >
+                      <Video
+                        size={24}
+                        className={cn(
+                          "mx-auto mb-2",
+                          metadata.consultationType === "ONLINE"
+                            ? "text-blue-600"
+                            : "text-gray-600",
+                        )}
+                      />
+                      <p
+                        className={cn(
+                          "font-semibold",
+                          metadata.consultationType === "ONLINE"
+                            ? "text-blue-600"
+                            : "text-gray-800",
+                        )}
                       >
-                        <TooltipTrigger
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setIsTooltipOpen(true);
-                          }}
-                          onBlur={() => setIsTooltipOpen(false)}
-                          className="flex w-full flex-1"
-                        >
-                          <button
-                            onClick={() =>
-                              updateMetadata({ consultationType: "ONLINE" })
-                            }
-                            className={cn(
-                              "w-full flex-1 rounded-lg border-2 p-4 opacity-50 transition-all",
-                              "border-gray-300 hover:border-gray-400",
-                            )}
-                          >
-                            <Video
-                              size={24}
-                              className={cn(
-                                "mx-auto mb-2",
-                                metadata.consultationType === "ONLINE"
-                                  ? "text-blue-600"
-                                  : "text-gray-600",
-                              )}
-                            />
-                            <p
-                              className={cn(
-                                "font-semibold",
-                                metadata.consultationType === "ONLINE"
-                                  ? "text-blue-600"
-                                  : "text-gray-800",
-                              )}
-                            >
-                              Online
-                            </p>
-                            <p className="mt-1 text-xs text-gray-500">
-                              Vídeo + áudio
-                            </p>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          align="end"
-                          className="w-80 border-none bg-white text-xs text-black shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1),0px_4px_11px_rgba(0,0,0,0.1)]"
-                        >
-                          Funcionalidade em desenvolvimento. Em breve você
-                          poderá gravar a tela e áudio das suas consultas
-                          online.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                        Online
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Vídeo + áudio
+                      </p>
+                    </button>
                   </div>
                 </div>
               )}
@@ -679,7 +650,7 @@ export function AudioRecorder({
                       className="z-[9999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
                       onWheel={(e) => e.stopPropagation()}
                     >
-                      {clients.length === 0 ? (
+                      {clients.length !== 0 ? (
                         clients.map((client) => (
                           <DropdownMenuItem
                             key={client.id}

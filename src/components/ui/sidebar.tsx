@@ -80,17 +80,27 @@ export function Sidebar() {
               Baixar App Store
             </button>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/10 text-primary hover:bg-primary/20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-2 transition">
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
               <Bell className="h-4" />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="bg-primary/10 text-primary hover:bg-primary/20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-2 transition">
+                <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
                   <User className="h-4" />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="z-[9999] border-none bg-white text-black">
+              <DropdownMenuContent
+                align="end"
+                className="z-[9999] border-none bg-white text-black"
+              >
+                <DropdownMenuItem
+                  onSelect={() =>
+                    window.open("https://wa.me/5541997819114", "_blank")
+                  }
+                >
+                  Falar com Suporte
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     cookies.remove(

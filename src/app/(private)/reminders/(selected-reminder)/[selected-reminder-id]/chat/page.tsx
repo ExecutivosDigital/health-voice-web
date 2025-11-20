@@ -26,7 +26,7 @@ export type GalleryItem = {
 };
 
 export default function ChatPage() {
-  const { selectedReminder } = useGeneralContext();
+  const { selectedRecording } = useGeneralContext();
   const containerRef = useRef(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [selectedPrompt] = useState(generalPrompt);
@@ -112,17 +112,17 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (messages.length === 0) {
-      if (selectedReminder && selectedReminder?.recording.transcription) {
+      if (selectedRecording && selectedRecording?.transcription) {
         setMessages((prev) => [
           ...prev,
           {
             role: "system",
-            content: selectedReminder.recording.transcription as string,
+            content: selectedRecording.transcription as string,
           },
         ]);
       }
     }
-  }, [messages, selectedReminder]);
+  }, [messages, selectedRecording]);
 
   return (
     <div className="flex h-full flex-1 flex-col gap-2 rounded-md">

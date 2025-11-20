@@ -9,14 +9,14 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { selectedReminder } = useGeneralContext();
+  const { selectedRecording } = useGeneralContext();
   const router = useRouter();
 
   useEffect(() => {
-    if (!selectedReminder) {
+    if (!selectedRecording) {
       router.push("/reminders");
     }
-  }, [selectedReminder]);
+  }, [selectedRecording]);
 
   return <>{children}</>;
 }

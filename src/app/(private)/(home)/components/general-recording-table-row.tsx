@@ -1,12 +1,7 @@
 "use client";
-import {
-  ClientProps,
-  RecordingDetailsProps,
-  ReminderProps,
-} from "@/@types/general-client";
+import { ClientProps, RecordingDetailsProps } from "@/@types/general-client";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
@@ -21,8 +16,6 @@ export function GeneralRecordingTableItem({ recording }: Props) {
     setSelectedClient,
     recordingsFilters,
     setRecordingsFilters,
-    setSelectedReminder,
-    setRemindersFilters,
   } = useGeneralContext();
   const router = useRouter();
 
@@ -80,10 +73,11 @@ export function GeneralRecordingTableItem({ recording }: Props) {
                 });
                 router.push(`/others/${recording.id}`);
               } else if (recording.type === "REMINDER") {
-                setSelectedReminder(recording as unknown as ReminderProps);
-                setRemindersFilters({
+                setSelectedRecording(recording);
+                setRecordingsFilters({
                   ...recordingsFilters,
-                  page: 1,
+                  clientId: undefined,
+                  type: "REMINDER",
                 });
                 router.push(`/reminders/${recording.id}`);
               }
@@ -91,12 +85,7 @@ export function GeneralRecordingTableItem({ recording }: Props) {
             className="bg-primary group flex items-center gap-2 rounded-3xl px-2 py-1 text-sm text-white transition ease-in-out hover:shadow-md"
           >
             <span>Acessar</span>
-            <ChevronRight
-              className={cn(
-                "h-4 transition ease-in-out group-hover:translate-x-1",
-                recording.type === "REMINDER" && "group-hover:translate-x-0",
-              )}
-            />
+            <ChevronRight className="h-4 transition ease-in-out group-hover:translate-x-1" />
           </button>
         </div>
       </TableCell>

@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { GeneralOthersTableHeader } from "./general-others-table-header";
 import { GeneralOthersTableItem } from "./general-others-table-row";
 
-type SortableColumn = "NAME" | "CREATED_AT" | "DESCRIPTION" | null;
+type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
@@ -35,7 +35,7 @@ export function GeneralOthersTable() {
   const GeneralRecordingsColumns = [
     { key: "NAME", label: "Título da Gravação", sortable: true },
     { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
-    { key: "DESCRIPTION", label: "Descrição", sortable: true },
+    { key: "DURATION", label: "Tempo de Gravação", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
@@ -86,6 +86,9 @@ export function GeneralOthersTable() {
     setRecordingsFilters((prev) => ({
       ...prev,
       clientId: undefined,
+      query: undefined,
+      sortBy: undefined,
+      sortDirection: undefined,
       type: "OTHER",
       page: 1,
     }));

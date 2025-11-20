@@ -1,18 +1,10 @@
 "use client";
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/blocks/tooltip";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 
 interface Props {
   recording: RecordingDetailsProps;
@@ -22,8 +14,6 @@ export function SelectedPatientTableItem({ recording }: Props) {
   const { setSelectedRecording } = useGeneralContext();
   const router = useRouter();
   const pathname = usePathname();
-
-  const [selectedTooltip, setSelectedTooltip] = useState<string | null>(null);
 
   return (
     <TableRow
@@ -38,43 +28,6 @@ export function SelectedPatientTableItem({ recording }: Props) {
       </TableCell>
       <TableCell className="py-0.5 text-start text-sm font-medium whitespace-nowrap">
         {recording.duration || "N/A"}
-      </TableCell>
-      <TableCell className="w-80 max-w-80 truncate py-0.5 text-start text-sm font-medium whitespace-nowrap">
-        <TooltipProvider>
-          <Tooltip
-            open={selectedTooltip === recording.id}
-            onOpenChange={() =>
-              setSelectedTooltip(
-                selectedTooltip === recording.id
-                  ? null
-                  : (recording.id as string),
-              )
-            }
-          >
-            <TooltipTrigger
-              asChild
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedTooltip(recording.id as string);
-              }}
-            >
-              <span className="w-80 max-w-80 truncate">
-                {recording.description || "N/A"}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              className={cn(
-                "text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]",
-                (!recording.description || recording.description === "") &&
-                  "hidden",
-              )}
-              side="top"
-              align="start"
-            >
-              <span>{recording.description}</span>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </TableCell>
       <TableCell className="py-2 text-xs font-medium whitespace-nowrap text-zinc-400">
         <div className="flex items-center justify-end">

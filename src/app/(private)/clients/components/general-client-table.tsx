@@ -88,8 +88,17 @@ export function GeneralClientsTable() {
     setRecordingsFilters((prev) => ({
       ...prev,
       type: undefined,
+      sortDirection: undefined,
+      sortBy: undefined,
+      clientId: undefined,
+      query: undefined,
+      reminderId: undefined,
       page: 1,
     }));
+    setClientsFilters({
+      ...clientsFilters,
+      page: 1,
+    });
   }, []);
 
   return (

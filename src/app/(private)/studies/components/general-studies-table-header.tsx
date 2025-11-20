@@ -1,13 +1,32 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/blocks/dropdown-menu";
-import { cn } from "@/utils/cn";
-import { Search, Settings } from "lucide-react";
+import { useGeneralContext } from "@/context/GeneralContext";
+import debounce from "lodash.debounce";
+import { Search } from "lucide-react";
+import { useCallback, useState } from "react";
 
 export function GeneralStudiesTableHeader() {
+  const { setRecordingsFilters } = useGeneralContext();
+  const [localQuery, setLocalQuery] = useState("");
+
+  const handleStopTyping = (value: string) => {
+    setRecordingsFilters({
+      query: value,
+      page: 1,
+      type: "STUDY",
+      sortDirection: null,
+      sortBy: null,
+    });
+  };
+
+  const debouncedHandleStopTyping = useCallback(
+    debounce(handleStopTyping, 1000),
+    [],
+  );
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalQuery(e.target.value);
+    debouncedHandleStopTyping(e.target.value);
+  };
+
   return (
     <div className="flex w-full items-center justify-between gap-2">
       <label
@@ -20,27 +39,11 @@ export function GeneralStudiesTableHeader() {
           name="search"
           id="search"
           placeholder="Buscar..."
+          value={localQuery}
+          onChange={handleChange}
           className="peer h-full w-full rounded-3xl px-8 text-neutral-700 outline-none placeholder:text-neutral-300"
         />
       </label>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={cn(
-              "flex h-8 items-center gap-2 rounded-3xl border border-neutral-300 px-4 text-neutral-500",
-              "cursor-auto opacity-50",
-            )}
-          >
-            <Settings className="h-4" />
-            <span className="font-semibold">Filtros</span>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>Filtro 1</DropdownMenuItem>
-          <DropdownMenuItem>Filtro 2</DropdownMenuItem>
-          <DropdownMenuItem>Filtro 3</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }

@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { SelectedClientTableHeader } from "./selected-client-table-header";
 import { SelectedPatientTableItem } from "./selected-client-table-row";
 
-type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | "DESCRIPTION" | null;
+type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | null;
 
 type SortDirection = "ASC" | "DESC" | null;
 
@@ -36,7 +36,6 @@ export function SelectedClientTable() {
     { key: "NAME", label: "Título da Gravação", sortable: true },
     { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
     { key: "DURATION", label: "Tempo de Gravação", sortable: true },
-    { key: "DESCRIPTION", label: "Descrição", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
@@ -86,7 +85,10 @@ export function SelectedClientTable() {
   useEffect(() => {
     setRecordingsFilters((prev) => ({
       ...prev,
-      type: undefined,
+      type: "CLIENT",
+      query: undefined,
+      sortBy: undefined,
+      sortDirection: undefined,
       page: 1,
     }));
   }, []);

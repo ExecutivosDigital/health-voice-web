@@ -2,10 +2,9 @@
 
 import {
   ClientProps,
+  FetchClientRequest,
   FetchRecordingsRequest,
-  FetchSimpleRequest,
   RecordingDetailsProps,
-  ReminderProps,
 } from "@/@types/general-client";
 import React, {
   createContext,
@@ -34,27 +33,11 @@ interface GeneralContextProps {
   setSelectedRecording: React.Dispatch<
     React.SetStateAction<RecordingDetailsProps | null>
   >;
-
-  // Agendamentos (Reminders)
-  reminders: ReminderProps[];
-  setReminders: React.Dispatch<React.SetStateAction<ReminderProps[]>>;
-  remindersFilters: FetchSimpleRequest;
-  setRemindersFilters: React.Dispatch<React.SetStateAction<FetchSimpleRequest>>;
-  remindersTotalPages: number;
-  setRemindersTotalPages: React.Dispatch<React.SetStateAction<number>>;
-  isGettingReminders: boolean;
-  setIsGettingReminders: React.Dispatch<React.SetStateAction<boolean>>;
-  GetReminders: () => Promise<void>;
-  selectedReminder: ReminderProps | null;
-  setSelectedReminder: React.Dispatch<
-    React.SetStateAction<ReminderProps | null>
-  >;
-
   // Pacientes (Clients)
   clients: ClientProps[];
   setClients: React.Dispatch<React.SetStateAction<ClientProps[]>>;
-  clientsFilters: FetchSimpleRequest;
-  setClientsFilters: React.Dispatch<React.SetStateAction<FetchSimpleRequest>>;
+  clientsFilters: FetchClientRequest;
+  setClientsFilters: React.Dispatch<React.SetStateAction<FetchClientRequest>>;
   clientsTotalPages: number;
   setClientsTotalPages: React.Dispatch<React.SetStateAction<number>>;
   isGettingClients: boolean;
@@ -98,20 +81,10 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
   const [selectedRecording, setSelectedRecording] =
     useState<RecordingDetailsProps | null>(null);
 
-  // --- Estados para Agendamentos (Reminders) ---
-  const [reminders, setReminders] = useState<ReminderProps[]>([]);
-  const [isGettingReminders, setIsGettingReminders] = useState(true);
-  const [remindersFilters, setRemindersFilters] = useState<FetchSimpleRequest>({
-    page: 1,
-  });
-  const [remindersTotalPages, setRemindersTotalPages] = useState(0);
-  const [selectedReminder, setSelectedReminder] =
-    useState<ReminderProps | null>(null);
-
   // --- Estados para Pacientes (Clients) ---
   const [clients, setClients] = useState<ClientProps[]>([]);
   const [isGettingClients, setIsGettingClients] = useState(true);
-  const [clientsFilters, setClientsFilters] = useState<FetchSimpleRequest>({
+  const [clientsFilters, setClientsFilters] = useState<FetchClientRequest>({
     page: 1,
   });
   const [clientsTotalPages, setClientsTotalPages] = useState(0);
@@ -140,7 +113,9 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
     setIsGettingRecordings(true);
     try {
       const queryString = buildQueryString(recordingsFilters);
+      console.log("queryString", queryString);
       const response = await GetAPI(`/recording?${queryString}`, true);
+      console.log("response", response);
       if (response.status === 200) {
         setRecordings(response.body.recordings || []);
         setRecordingsTotalPages(response.body.pages || 0);
@@ -157,30 +132,6 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
       setIsGettingRecordings(false);
     }
   }, [GetAPI, recordingsFilters]); // Depende do filtro
-
-  const GetReminders = useCallback(async () => {
-    setIsGettingReminders(true);
-    try {
-      const queryString = buildQueryString(remindersFilters);
-      // Endpoint: /reminder (ou /reminder, ajuste se necessário)
-      const response = await GetAPI(`/reminder?${queryString}`, true);
-      if (response.status === 200) {
-        // A API retorna 'reminders', mas salvamos em 'reminders'
-        setReminders(response.body.reminders || []);
-        setRemindersTotalPages(response.body.pages || 0);
-      } else {
-        console.error("Erro ao buscar agendamentos:", response.status);
-        setReminders([]);
-        setRemindersTotalPages(0);
-      }
-    } catch (error) {
-      console.error("Erro no GetReminders:", error);
-      setReminders([]);
-      setRemindersTotalPages(0);
-    } finally {
-      setIsGettingReminders(false);
-    }
-  }, [GetAPI, remindersFilters]); // Depende do filtro
 
   const GetClients = useCallback(async () => {
     setIsGettingClients(true);
@@ -210,11 +161,9 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
   useEffect(() => {
     if (profile) {
       GetRecordings();
-      GetReminders();
       GetClients();
     } else {
       setRecordings([]);
-      setReminders([]);
       setClients([]);
     }
   }, [profile]);
@@ -224,12 +173,6 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
       GetRecordings();
     }
   }, [recordingsFilters, GetRecordings, profile]);
-
-  useEffect(() => {
-    if (profile) {
-      GetReminders();
-    }
-  }, [remindersFilters, GetReminders, profile]);
 
   useEffect(() => {
     if (profile) {
@@ -252,20 +195,6 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         GetRecordings,
         selectedRecording,
         setSelectedRecording,
-
-        // Agendamentos
-        reminders,
-        setReminders,
-        remindersFilters,
-        setRemindersFilters,
-        remindersTotalPages,
-        setRemindersTotalPages,
-        isGettingReminders,
-        setIsGettingReminders,
-        GetReminders,
-        selectedReminder,
-        setSelectedReminder,
-
         // Pacientes
         clients,
         setClients,

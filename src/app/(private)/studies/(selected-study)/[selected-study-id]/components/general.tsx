@@ -1,5 +1,6 @@
 "use client";
 
+import { RequestTranscription } from "@/components/ui/request-transcription";
 import { useGeneralContext } from "@/context/GeneralContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -14,9 +15,12 @@ export function General() {
           {selectedRecording?.transcription}
         </ReactMarkdown>
       ) : (
-        <h1 className="text-primary m-auto w-full text-center md:w-max">
-          Transcrição não disponível
-        </h1>
+        <>
+          <h1 className="text-primary m-auto w-full text-center md:w-max">
+            Transcrição não disponível
+          </h1>
+          <RequestTranscription />
+        </>
       )}
     </div>
   );

@@ -3,14 +3,13 @@ import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { Bell, CalendarIcon, ChevronLeft, Menu, User } from "lucide-react";
+import { Bell, ChevronLeft, Menu, User } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
-import { Calendar } from "./blocks/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,8 +24,7 @@ interface BreadcrumbItem {
 }
 
 export function Header() {
-  const { selectedClient, selectedRecording, selectedReminder } =
-    useGeneralContext();
+  const { selectedClient, selectedRecording } = useGeneralContext();
   const { mobileMenu, setMobileMenu } = useSidebar();
   const { clearSession, profile } = useSession();
   const pathname = usePathname();
@@ -79,7 +77,7 @@ export function Header() {
         const reminderId = pathSegments[1];
 
         breadcrumbs.push({
-          label: selectedReminder?.name || "Carregando...",
+          label: selectedRecording?.name || "Carregando...",
           href: `/${reminderId}`,
           isActive: true,
         });
@@ -203,6 +201,13 @@ export function Header() {
                   onSelect={() => window.open(appUrl, "_blank")}
                 >
                   Acessar Aplicativo
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() =>
+                    window.open("https://wa.me/5541997819114", "_blank")
+                  }
+                >
+                  Falar com Suporte
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
@@ -362,7 +367,7 @@ export function Header() {
                         : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
-                      router.push(`/reminders/${selectedReminder?.id}`)
+                      router.push(`/reminders/${selectedRecording?.id}`)
                     }
                   >
                     Visão Geral
@@ -375,7 +380,7 @@ export function Header() {
                         : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
-                      router.push(`/reminders/${selectedReminder?.id}/chat`)
+                      router.push(`/reminders/${selectedRecording?.id}/chat`)
                     }
                   >
                     Conversar
@@ -392,9 +397,9 @@ export function Header() {
                     className="h-4 w-max fill-white object-contain text-white"
                   />
                   <span>
-                    {moment(selectedReminder?.date).format("DD/MM/YYYY") +
-                      " - " +
-                      selectedReminder?.time}
+                    {moment(selectedRecording?.createdAt).format(
+                      "DD/MM/YYYY - HH:mm",
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -405,7 +410,7 @@ export function Header() {
                     height={100}
                     className="h-4 w-max fill-white object-contain text-white"
                   />
-                  <span>{selectedReminder?.recording.duration}</span>
+                  <span>{selectedRecording?.duration}</span>
                 </div>
               </div>
             </div>
@@ -636,36 +641,12 @@ export function Header() {
               </div>
               <div className="hidden items-center gap-2 md:flex">
                 <AudioRecorder buttonClassName="bg-white/10 hover:bg-white/20" />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
-                      <CalendarIcon className="h-4" />
-                      <span>Outubro</span>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <Calendar mode="single" selected={new Date()} />
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           )}
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
           <AudioRecorder buttonClassName="bg-white/10 hover:bg-white/20" />
-          {/* <AudioRecorder /> */}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-3xl bg-white/10 px-4 py-2 transition hover:bg-white/20">
-                <CalendarIcon className="h-4" />
-                <span>Outubro</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <Calendar mode="single" selected={new Date()} />
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>
